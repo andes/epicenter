@@ -5,24 +5,24 @@ var token = require('../constants');
 var codec = require('../codec');
 var record = require('../record_epicenter');
 
-describe('Test suite for record module', function() ***REMOVED***
-    describe('ToTestCase', function() ***REMOVED***
-        it('termination_record_toASTM', function() ***REMOVED***
+describe('Test suite for record module', function() {
+    describe('ToTestCase', function() {
+        it('termination_record_toASTM', function() {
             var msg = 'L|1|N';
             var rec = new record.TerminationRecord();
             rec =  codec.encodeRecord(rec.toASTM(),token.ENCODING);
             
-            if (msg === rec)***REMOVED***
+            if (msg === rec){
                 console.log('####TODO BIEN');
-        ***REMOVED***
-            else***REMOVED***
+            }
+            else{
                 console.log('####TODO MAL');
-        ***REMOVED***
+            }
             console.log(msg);
             console.log(rec);
-    ***REMOVED***);
+        });
         
-        it('patient_record_toASTM', function() ***REMOVED***
+        it('patient_record_toASTM', function() {
             var msg = 'P|1||PatId123||Doe John R Jr. Dr.^^^^||19651029|M||2 Main St. Baltimore MD 21211 USA^^^^||(410) 316 - 4000|JSMITH||||||P\\AM\\AMX||||19981015120000||324|||||||ER|St. Josephs Hospital';
             var p = new record.PatientRecord();
             
@@ -41,17 +41,17 @@ describe('Test suite for record module', function() ***REMOVED***
             p.hospitalClient = 'St. Josephs Hospital';
             rec =  codec.encodeRecord(p.toASTM(),token.ENCODING);
             
-            if (msg === rec)***REMOVED***
+            if (msg === rec){
                 console.log('####TODO BIEN');
-        ***REMOVED***
-            else***REMOVED***
+            }
+            else{
                 console.log('####TODO MAL');
-        ***REMOVED***
+            }
             console.log(msg);
             console.log(rec);
-    ***REMOVED***);
+        });
         
-        it('order_record_toASTM_uploaded', function() ***REMOVED***
+        it('order_record_toASTM_uploaded', function() {
             var msg = 'O|1|Acc123^^^Seq123||^^^MGIT_960_GND|||19981019023300|||SJB^MMF|A|||19981019045200|Blood^Arm|MJones|(410)555–1234^(410)555-9876^(410)555-7777|||||19981020053400|62||O|||Nos';
             
             var o = new record.OrderRecord();
@@ -75,17 +75,17 @@ describe('Test suite for record module', function() ***REMOVED***
             o.isolateClassification = 'Nos';
             rec =  codec.encodeRecord(o.toASTM(),token.ENCODING);
             
-            if (msg === rec)***REMOVED***
+            if (msg === rec){
                 console.log('####TODO BIEN');
-        ***REMOVED***
-            else***REMOVED***
+            }
+            else{
                 console.log('####TODO MAL');
-        ***REMOVED***
+            }
             console.log(msg);
             console.log(rec);
-    ***REMOVED***);
+        });
 
-        it('order_record_toASTM', function() ***REMOVED***
+        it('order_record_toASTM', function() {
             var msg = 'O|1|Acc456^2^STACOH^||^^^ISOLATE RESULT|||20041104082700|||^||||20041104082750|^||^^|||||||||||UNK'
             // var msg = 'O|1| Acc456                   ||^^^MGIT_960_GND^430100065177|R|| 20041104082700|||||||20041104082750||||||||20050316152949 '
             // var msg = 'O|1| Acc456                   ||^^^PLUSANF^449305384011           |R|| 20041104082700|||||||20041104082750||||||||20050316153238 '
@@ -115,56 +115,56 @@ describe('Test suite for record module', function() ***REMOVED***
             o.isolateClassification = 'UNK';
             rec =  codec.encodeRecord(o.toASTM(),token.ENCODING);
             
-            if (msg === rec)***REMOVED***
+            if (msg === rec){
                 console.log('####TODO BIEN');
-        ***REMOVED***
-            else***REMOVED***
+            }
+            else{
                 console.log('####TODO MAL');
-        ***REMOVED***
+            }
             console.log(msg);
             console.log(rec);
-    ***REMOVED***);
+        });
 
-***REMOVED***);
+    });
     
-    describe('BuildTestCase', function() ***REMOVED***
-         it('order_record_build', function() ***REMOVED***
+    describe('BuildTestCase', function() {
+         it('order_record_build', function() {
             var msg = 'O|1|Acc123^^^Seq123||^^^MGIT_960_GND|||19981019023300|||SJB^MMF|A|||19981019045200|Blood^Arm|MJones|(410)555–1234^(410)555-9876^(410)555-7777|||||19981020053400|62||O|||Nos';
             rec =  codec.decode(msg,token.ENCODING);
             var o = new record.OrderRecord();
             o.buildFromRecord(rec);
             rec =  codec.encodeRecord(o.toASTM(),token.ENCODING);
             
-            if (msg === rec)***REMOVED***
+            if (msg === rec){
                 console.log('####TODO BIEN');
-        ***REMOVED***
-            else***REMOVED***
+            }
+            else{
                 console.log('####TODO MAL');
-        ***REMOVED***
+            }
             console.log(msg);
             console.log(rec);
-    ***REMOVED***);
+        });
         
         
-         it('order_record_build2', function() ***REMOVED***
+         it('order_record_build2', function() {
             var msg = 'O|1|Acc456^2^STACOH^||^^^ISOLATE RESULT|||20041104082700|||^||||20041104082750|^||^^|||||||||||UNK'
             rec =  codec.decode(msg,token.ENCODING);
             var o = new record.OrderRecord();
             o.buildFromRecord(rec);
             rec =  codec.encodeRecord(o.toASTM(),token.ENCODING);
             
-            if (msg === rec)***REMOVED***
+            if (msg === rec){
                 console.log('####TODO BIEN');
-        ***REMOVED***
-            else***REMOVED***
+            }
+            else{
                 console.log('####TODO MAL');
-        ***REMOVED***
+            }
             console.log(msg);
             console.log(rec);
-    ***REMOVED***);
+        });
         
         
-        it('order_record_build3', function() ***REMOVED***
+        it('order_record_build3', function() {
             var msg = 'O|1|Acc123||^^^MGIT_960_GND '
             
             rec =  codec.decode(msg,token.ENCODING);
@@ -172,17 +172,17 @@ describe('Test suite for record module', function() ***REMOVED***
             o.buildFromRecord(rec);
             rec =  codec.encodeRecord(o.toASTM(),token.ENCODING);
             
-            if (msg === rec)***REMOVED***
+            if (msg === rec){
                 console.log('####TODO BIEN');
-        ***REMOVED***
-            else***REMOVED***
+            }
+            else{
                 console.log('####TODO MAL');
-        ***REMOVED***
+            }
             console.log(msg);
             console.log(rec);
-    ***REMOVED***);
+        });
         
-        it('order_record_build4', function() ***REMOVED***
+        it('order_record_build4', function() {
             var msg = 'O|1|Acc123^1||^^^ISOLATE_RESULT '
             
             rec =  codec.decode(msg,token.ENCODING);
@@ -190,18 +190,18 @@ describe('Test suite for record module', function() ***REMOVED***
             o.buildFromRecord(rec);
             rec =  codec.encodeRecord(o.toASTM(),token.ENCODING);
             
-            if (msg === rec)***REMOVED***
+            if (msg === rec){
                 console.log('####TODO BIEN');
-        ***REMOVED***
-            else***REMOVED***
+            }
+            else{
                 console.log('####TODO MAL');
-        ***REMOVED***
+            }
             console.log(msg);
             console.log(rec);
-    ***REMOVED***);
+        });
         
         
-        it('order_record_build5', function() ***REMOVED***
+        it('order_record_build5', function() {
             var msg = 'O|1| Acc456^^^||^^^PLUSANF^449305384011|R|| 20041104082700|||||||20041104082750||||||||20050316153238 ';
             
             rec =  codec.decode(msg,token.ENCODING);
@@ -209,17 +209,17 @@ describe('Test suite for record module', function() ***REMOVED***
             o.buildFromRecord(rec);
             rec =  codec.encodeRecord(o.toASTM(),token.ENCODING);
             
-            if (msg === rec)***REMOVED***
+            if (msg === rec){
                 console.log('####TODO BIEN');
-        ***REMOVED***
-            else***REMOVED***
+            }
+            else{
                 console.log('####TODO MAL');
-        ***REMOVED***
+            }
             console.log(msg);
             console.log(rec);
-    ***REMOVED***);
+        });
         
-        it('order_record_build6', function() ***REMOVED***
+        it('order_record_build6', function() {
             // var msg = 'O|1| Acc456^^^||^^^PLUSANF^449305384011|R|| 20041104082700|||||||20041104082750||||||||20050316153238 ';
             var msg = 'O|1|Acc123^1^MYCBTUB^||^^^MGIT_960_GND^Seq123|||19981019023300|||SJB^MMF|A|||19981019045200|Blood^Arm|MJones|(410)555–1234^(410)555–9876^(410)555–7777|||||19981020053400|62||O|||Nos'
             rec =  codec.decode(msg,token.ENCODING);
@@ -227,19 +227,19 @@ describe('Test suite for record module', function() ***REMOVED***
             o.buildFromRecord(rec);
             rec =  codec.encodeRecord(o.toASTM(),token.ENCODING);
             
-            if (msg === rec)***REMOVED***
+            if (msg === rec){
                 console.log('####TODO BIEN');
-        ***REMOVED***
-            else***REMOVED***
+            }
+            else{
                 console.log('####TODO MAL');
-        ***REMOVED***
+            }
             console.log(msg);
             console.log(rec);
-    ***REMOVED***);
+        });
         
         
         
-    ***REMOVED***);
-***REMOVED***);
+        });
+});
 
 

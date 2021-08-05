@@ -18,44 +18,44 @@ var port = null; // COM Port Communication
 
 initPort();
 
-function initPort()***REMOVED***
+function initPort(){
     var portNumber = 'COM1';
     port = new SerialPort(portNumber);
     port.on('open', handlePortOpen);
     port.on('close', handlePortClose);
     port.on('data', handlePortData);
-    port.on('error', function(err) ***REMOVED***
+    port.on('error', function(err) {
           logger.error(err.message);
       throw new Error('Port Error: ' + err.message);
-***REMOVED***)
-***REMOVED***
+    })
+}
 
-function handlePortOpen() ***REMOVED***
+function handlePortOpen() {
     logger.info('Port open. Data rate: ' + port.options.baudRate);
-***REMOVED***
+}
 
-function handlePortClose() ***REMOVED***
+function handlePortClose() {
     logger.info('Port Closed.');
-***REMOVED***
+}
 
-function handlePortWrite(data)***REMOVED***
+function handlePortWrite(data){
     logger.info('REQUEST A'); 
     logger.info(data);
     port.write(data);
-***REMOVED***
+}
 
-function handlePortData(data)***REMOVED***
+function handlePortData(data){
     logger.info('RESPONSE B'); 
     logger.info(data); // Raw Buffer Data
-***REMOVED***
+}
 
-function write()***REMOVED***
+function write(){
     handlePortWrite('Hola');
-***REMOVED***
+}
 
-function runIntervalCheck() ***REMOVED***
+function runIntervalCheck() {
   setInterval(write, 10000);
-***REMOVED***;
+};
 
 
 runIntervalCheck();

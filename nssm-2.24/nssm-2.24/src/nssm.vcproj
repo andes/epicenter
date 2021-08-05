@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="nssm"
-	ProjectGUID="***REMOVED***32995E05-606F-4D83-A2E6-C2B361B34DF1***REMOVED***"
+	ProjectGUID="{32995E05-606F-4D83-A2E6-C2B361B34DF1}"
 	RootNamespace="nssm"
 	TargetFrameworkVersion="0"
 	>

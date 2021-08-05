@@ -10,12 +10,12 @@ var utils = require('./toolbox');
 * H|\^&|||host^1|||||cobas c 311|TSDWN^BATCH|P|1
 * 
 **/
-function HeaderRecord(record)***REMOVED***
-    this.build = function(record)***REMOVED***
+function HeaderRecord(record){
+    this.build = function(record){
         
-***REMOVED***
+    }
     
-    this.toASTM = function ()***REMOVED***
+    this.toASTM = function (){
         return [ 
             'H',
             [ [null], [null,'&'] ],
@@ -31,8 +31,8 @@ function HeaderRecord(record)***REMOVED***
             'P',
             '1' 
         ];
-***REMOVED***
-***REMOVED***
+    }
+}
 
 
 /***************************************
@@ -42,15 +42,15 @@ function HeaderRecord(record)***REMOVED***
 * L|1|N
 * 
 **/
-function TerminationRecord(record)***REMOVED***
-    this.build = function(record)***REMOVED***
+function TerminationRecord(record){
+    this.build = function(record){
         
-***REMOVED***
+    }
     
-    this.toASTM = function ()***REMOVED***
+    this.toASTM = function (){
         return [ 'L', '1', 'N' ];
-***REMOVED***
-***REMOVED***
+    }
+}
 
 
 /***************************************
@@ -60,15 +60,15 @@ function TerminationRecord(record)***REMOVED***
 * P|1||||||20070921|M||||||35^Y
 * 
 **/
-function PatientRecord(record)***REMOVED***
-    this.build = function(record)***REMOVED***
+function PatientRecord(record){
+    this.build = function(record){
         
-***REMOVED***
+    }
     
-    this.toASTM = function ()***REMOVED***
+    this.toASTM = function (){
         return [ 'P', '1',null,null,null,null,null,null,this.sex,null,null,null,null,null,[null,null]];
-***REMOVED***
-***REMOVED***
+    }
+}
 
 
 /***************************************
@@ -80,8 +80,8 @@ function PatientRecord(record)***REMOVED***
 * Sample result record decoded:
 * [ 'R','1',[ null, null, null, '458/' ],'55','mg/dl',null,'N',null,'F',null,null,null,null,'P1' ]
 **/
-function ResultRecord(record)***REMOVED***
-    try***REMOVED***
+function ResultRecord(record){
+    try{
         this.type = record[0];
         this.seq = record[1];
         this.test = record[2][3].slice(0,-1); // Remove last character '/'
@@ -97,13 +97,13 @@ function ResultRecord(record)***REMOVED***
         // started_at
         // completed_at
         // instrument
-***REMOVED***
-    catch(err)***REMOVED***
+    }
+    catch(err){
         logger.error('Cannot build ResultRecord.' + err);
         throw new Error(err);
-***REMOVED***
+    }
 
-***REMOVED***
+}
 
 
 
@@ -143,9 +143,9 @@ function ResultRecord(record)***REMOVED***
 * null,
 * 'F' ],
 **/
-function OrderRecord()***REMOVED***
-    this.build = function(record)***REMOVED***
-        try***REMOVED***
+function OrderRecord(){
+    this.build = function(record){
+        try{
             this.type = record[0];
             this.seq = record[1];
             // El nro de protocolo puede estar compuesto por nro_protocolo + prefijo de tipo de muestra
@@ -155,26 +155,26 @@ function OrderRecord()***REMOVED***
             var sampleId =  record[2]; 
             var prefijoTipoMuestra = '';  
             
-            if (sampleId.indexOf('-')> -1)***REMOVED***
+            if (sampleId.indexOf('-')> -1){
                 var complexOrderSampleId = sampleId.split('-');
                 sampleId =  complexOrderSampleId[0];            // Nro de protocolo
                 prefijoTipoMuestra = complexOrderSampleId[1];   // Prefijo del tipo de muestra
-        ***REMOVED***
+            }
             
             this.sampleId = parseInt(sampleId);
             this.prefijoTipoMuestra = prefijoTipoMuestra;
             this.biomaterial = record[15];
             this.dateTimeReported = new Date();
             // Others order record fields   
-    ***REMOVED***
-        catch(err)***REMOVED***
+        }
+        catch(err){
             logger.error('Cannot build OrderRecord.' + err)
             throw new Error(err);
-    ***REMOVED***
-***REMOVED***
+        }
+    }
 
         
-    this.toASTM = function ()***REMOVED***
+    this.toASTM = function (){
         var timestamp = utils.formatDate(new Date(),'yyyyMMddHHmmss');
         return [ 
             'O',
@@ -203,18 +203,18 @@ function OrderRecord()***REMOVED***
             null,
             null,
             'O' ];
-    ***REMOVED***
+        }
         
-    this.toASTMTestComponent = function (testArray)***REMOVED***
+    this.toASTMTestComponent = function (testArray){
         var test = [null,null,null,testArray[0].id,null];
-        if (testArray.length == 1)***REMOVED***
+        if (testArray.length == 1){
             return test;
-    ***REMOVED*** 
-        else***REMOVED***
+        } 
+        else{
             return [test, this.toASTMTestComponent(testArray.slice(1))]
-    ***REMOVED***
-***REMOVED***
-***REMOVED***
+        }
+    }
+}
 
 /***************************************
 *              TestComponent           *
@@ -223,9 +223,9 @@ function OrderRecord()***REMOVED***
 * 
 **/
 
-function TestComponent(id)***REMOVED***
+function TestComponent(id){
     this.id = id;
-***REMOVED***
+}
 
 
 
@@ -236,26 +236,26 @@ function TestComponent(id)***REMOVED***
 * C|1|I|                              ^                         ^                    ^               ^          |G
 * 
 **/
-function CommentRecord(record)***REMOVED***
-    this.build = function(record)***REMOVED***
+function CommentRecord(record){
+    this.build = function(record){
         
-***REMOVED***
+    }
     
-    this.toASTM = function ()***REMOVED***
+    this.toASTM = function (){
        return [ 
             'C', 
             '1', 
             'L', 
             ['                              ','                         ','                    ','               ','          '], 
             'G' ];
-***REMOVED***
-***REMOVED***
+    }
+}
 
 
 
 
 
-module.exports = ***REMOVED***
+module.exports = {
     ResultRecord: ResultRecord,
     OrderRecord : OrderRecord,
     HeaderRecord : HeaderRecord,
@@ -263,4 +263,4 @@ module.exports = ***REMOVED***
     CommentRecord : CommentRecord,
     PatientRecord : PatientRecord,
     TestComponent : TestComponent,
-***REMOVED***;
+};

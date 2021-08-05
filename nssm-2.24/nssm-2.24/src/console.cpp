@@ -1,7 +1,7 @@
 #include "nssm.h"
 
 /* See if we were launched from a console window. */
-void check_console() ***REMOVED***
+void check_console() {
   /* If we're running in a service context there will be no console window. */
   HWND console = GetConsoleWindow();
   if (! console) return;
@@ -18,32 +18,32 @@ void check_console() ***REMOVED***
 
   /* We close our new console so that subsequent messages appear in a popup. */
   FreeConsole();
-***REMOVED***
+}
 
 /* Helpers for drawing the banner. */
-static inline void block(unsigned int a, short x, short y, unsigned long n) ***REMOVED***
+static inline void block(unsigned int a, short x, short y, unsigned long n) {
   HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
   TCHAR s = _T(' ');
 
   unsigned long out;
-  COORD c = ***REMOVED*** x, y ***REMOVED***;
+  COORD c = { x, y };
   FillConsoleOutputAttribute(h, a, n, c, &out);
   FillConsoleOutputCharacter(h, s, n, c, &out);
-***REMOVED***
+}
 
-static inline void R(short x, short y, unsigned long n) ***REMOVED***
+static inline void R(short x, short y, unsigned long n) {
   block(BACKGROUND_RED | BACKGROUND_INTENSITY, x, y, n);
-***REMOVED***
+}
 
-static inline void r(short x, short y, unsigned long n) ***REMOVED***
+static inline void r(short x, short y, unsigned long n) {
   block(BACKGROUND_RED, x, y, n);
-***REMOVED***
+}
 
-static inline void b(short x, short y, unsigned long n) ***REMOVED***
+static inline void b(short x, short y, unsigned long n) {
   block(0, x, y, n);
-***REMOVED***
+}
 
-void alloc_console(nssm_service_t *service) ***REMOVED***
+void alloc_console(nssm_service_t *service) {
   if (service->no_console) return;
 
   AllocConsole();
@@ -57,10 +57,10 @@ void alloc_console(nssm_service_t *service) ***REMOVED***
   TCHAR displayname[SERVICE_NAME_LENGTH];
   unsigned long len = _countof(displayname);
   SC_HANDLE services = open_service_manager(SC_MANAGER_CONNECT);
-  if (services) ***REMOVED***
+  if (services) {
     if (! GetServiceDisplayName(services, service->name, displayname, &len)) ZeroMemory(displayname, sizeof(displayname));
     CloseServiceHandle(services);
-  ***REMOVED***
+  }
   if (! displayname[0]) _sntprintf_s(displayname, _countof(displayname), _TRUNCATE, _T("%s"), service->name);
 
   TCHAR title[65535];
@@ -172,4 +172,4 @@ void alloc_console(nssm_service_t *service) ***REMOVED***
 
   b(0, y, 80);
   y++;
-***REMOVED***
+}

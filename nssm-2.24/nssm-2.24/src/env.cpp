@@ -1,7 +1,7 @@
 #include "nssm.h"
 
 /* Copy an environment block. */
-TCHAR *copy_environment_block(TCHAR *env) ***REMOVED***
+TCHAR *copy_environment_block(TCHAR *env) {
   unsigned long len;
 
   if (! env) return 0;
@@ -9,101 +9,101 @@ TCHAR *copy_environment_block(TCHAR *env) ***REMOVED***
   if (! len++) return 0;
 
   TCHAR *newenv = (TCHAR *) HeapAlloc(GetProcessHeap(), 0, len * sizeof(TCHAR));
-  if (! newenv) ***REMOVED***
+  if (! newenv) {
     log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_OUT_OF_MEMORY, _T("environment"), _T("copy_environment_block()"), 0);
     return 0;
-  ***REMOVED***
+  }
 
   memmove(newenv, env, len * sizeof(TCHAR));
   return newenv;
-***REMOVED***
+}
 
 /*
   The environment block starts with variables of the form
   =C:=C:\Windows\System32 which we ignore.
 */
-TCHAR *useful_environment(TCHAR *rawenv) ***REMOVED***
+TCHAR *useful_environment(TCHAR *rawenv) {
   TCHAR *env = rawenv;
 
-  if (env) ***REMOVED***
-    while (*env == _T('=')) ***REMOVED***
+  if (env) {
+    while (*env == _T('=')) {
       for ( ; *env; env++);
       env++;
-***REMOVED***
-  ***REMOVED***
+    }
+  }
 
   return env;
-***REMOVED***
+}
 
 /* Expand an environment variable.  Must call HeapFree() on the result. */
-TCHAR *expand_environment_string(TCHAR *string) ***REMOVED***
+TCHAR *expand_environment_string(TCHAR *string) {
   unsigned long len;
 
   len = ExpandEnvironmentStrings(string, 0, 0);
-  if (! len) ***REMOVED***
+  if (! len) {
     log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_EXPANDENVIRONMENTSTRINGS_FAILED, string, error_string(GetLastError()), 0);
     return 0;
-  ***REMOVED***
+  }
 
   TCHAR *ret = (TCHAR *) HeapAlloc(GetProcessHeap(), 0, len * sizeof(TCHAR));
-  if (! ret) ***REMOVED***
+  if (! ret) {
     log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_OUT_OF_MEMORY, _T("ExpandEnvironmentStrings()"), _T("expand_environment_string"), 0);
     return 0;
-  ***REMOVED***
+  }
 
-  if (! ExpandEnvironmentStrings(string, ret, len)) ***REMOVED***
+  if (! ExpandEnvironmentStrings(string, ret, len)) {
     log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_EXPANDENVIRONMENTSTRINGS_FAILED, string, error_string(GetLastError()), 0);
     HeapFree(GetProcessHeap(), 0, ret);
     return 0;
-  ***REMOVED***
+  }
 
   return ret;
-***REMOVED***
+}
 
 /*
   Set all the environment variables from an environment block in the current
   environment or remove all the variables in the block from the current
   environment.
 */
-static int set_environment_block(TCHAR *env, bool set) ***REMOVED***
+static int set_environment_block(TCHAR *env, bool set) {
   int ret = 0;
 
   TCHAR *s, *t;
-  for (s = env; *s; s++) ***REMOVED***
+  for (s = env; *s; s++) {
     for (t = s; *t && *t != _T('='); t++);
-    if (*t == _T('=')) ***REMOVED***
+    if (*t == _T('=')) {
       *t = _T('\0');
-      if (set) ***REMOVED***
+      if (set) {
         TCHAR *expanded = expand_environment_string(++t);
-        if (expanded) ***REMOVED***
+        if (expanded) {
           if (! SetEnvironmentVariable(s, expanded)) ret++;
           HeapFree(GetProcessHeap(), 0, expanded);
-    ***REMOVED***
-        else ***REMOVED***
+        }
+        else {
           if (! SetEnvironmentVariable(s, t)) ret++;
-    ***REMOVED***
-  ***REMOVED***
-      else ***REMOVED***
+        }
+      }
+      else {
         if (! SetEnvironmentVariable(s, NULL)) ret++;
-  ***REMOVED***
+      }
       for (t++ ; *t; t++);
-***REMOVED***
+    }
     s = t;
-  ***REMOVED***
+  }
 
   return ret;
-***REMOVED***
+}
 
-int set_environment_block(TCHAR *env) ***REMOVED***
+int set_environment_block(TCHAR *env) {
   return set_environment_block(env, true);
-***REMOVED***
+}
 
-static int unset_environment_block(TCHAR *env) ***REMOVED***
+static int unset_environment_block(TCHAR *env) {
   return set_environment_block(env, false);
-***REMOVED***
+}
 
 /* Remove all variables from the process environment. */
-int clear_environment() ***REMOVED***
+int clear_environment() {
   TCHAR *rawenv = GetEnvironmentStrings();
   TCHAR *env = useful_environment(rawenv);
 
@@ -112,15 +112,15 @@ int clear_environment() ***REMOVED***
   if (rawenv) FreeEnvironmentStrings(rawenv);
 
   return ret;
-***REMOVED***
+}
 
 /* Set the current environment to exactly duplicate an environment block. */
-int duplicate_environment(TCHAR *rawenv) ***REMOVED***
+int duplicate_environment(TCHAR *rawenv) {
   int ret = clear_environment();
   TCHAR *env = useful_environment(rawenv);
   ret += set_environment_block(env);
   return ret;
-***REMOVED***
+}
 
 /*
   Verify an environment block.
@@ -128,7 +128,7 @@ int duplicate_environment(TCHAR *rawenv) ***REMOVED***
             0 if environment is OK.
            -1 on error.
 */
-int test_environment(TCHAR *env) ***REMOVED***
+int test_environment(TCHAR *env) {
   TCHAR path[PATH_LENGTH];
   GetModuleFileName(0, path, _countof(path));
   STARTUPINFO si;
@@ -146,17 +146,17 @@ int test_environment(TCHAR *env) ***REMOVED***
     Assuming no solar flare activity, the only reason this would fail is if
     the environment were invalid.
   */
-  if (CreateProcess(0, path, 0, 0, 0, flags, env, 0, &si, &pi)) ***REMOVED***
+  if (CreateProcess(0, path, 0, 0, 0, flags, env, 0, &si, &pi)) {
     TerminateProcess(pi.hProcess, 0);
-  ***REMOVED***
-  else ***REMOVED***
+  }
+  else {
     unsigned long error = GetLastError();
     if (error == ERROR_INVALID_PARAMETER) return 1;
     else return -1;
-  ***REMOVED***
+  }
 
   return 0;
-***REMOVED***
+}
 
 /*
   Duplicate an environment block returned by GetEnvironmentStrings().
@@ -164,10 +164,10 @@ int test_environment(TCHAR *env) ***REMOVED***
   modifies its inputs, this function takes a copy of the input and operates
   on that.
 */
-void duplicate_environment_strings(TCHAR *env) ***REMOVED***
+void duplicate_environment_strings(TCHAR *env) {
   TCHAR *newenv = copy_environment_block(env);
   if (! newenv) return;
 
   duplicate_environment(newenv);
   HeapFree(GetProcessHeap(), 0, newenv);
-***REMOVED***
+}

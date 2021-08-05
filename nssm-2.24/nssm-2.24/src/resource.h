@@ -1,4 +1,4 @@
-//***REMOVED******REMOVED***NO_DEPENDENCIES***REMOVED******REMOVED***
+//{{NO_DEPENDENCIES}}
 // Microsoft Developer Studio generated include file.
 // Used by nssm.rc
 //

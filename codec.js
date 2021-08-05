@@ -3,9 +3,9 @@ var logger = require('winston');
 var token = require('./constants');
 
     
-function isDigit(num)***REMOVED***
+function isDigit(num){
     return !isNaN(num)
-***REMOVED***
+}
 
 /**
 * Common ASTM decoding function that tries to guess which kind of data it
@@ -19,22 +19,22 @@ function isDigit(num)***REMOVED***
 * @param data: ASTM data object.
 * @return: Array of ASTM records.
 **/
-function decode(data)***REMOVED***
-    if (data.startsWith(token.STX))***REMOVED*** // # may be decode message \x02...\x03CS\r\n
+function decode(data){
+    if (data.startsWith(token.STX)){ // # may be decode message \x02...\x03CS\r\n
         var records = decode_message(data);
         return records;
-***REMOVED***
+    }
     var bait =  data.slice(0,1).toString(token.ENCODING);
-    if  (isDigit(bait))***REMOVED***
+    if  (isDigit(bait)){
         var records = decodeFrame(data);
         return records;
-***REMOVED***
+    }
     // Maybe is a record
     var salida = [];
     return decodeRecord(data);
 
     
-***REMOVED***
+}
 
 
 /**
@@ -42,23 +42,23 @@ function decode(data)***REMOVED***
 * communication routines. It should contains checksum that would be
 * additionally verified.
 *
-* @param ***REMOVED***string***REMOVED*** message: ASTM message.
+* @param {string} message: ASTM message.
 * @returns: Array of records
 
 * @throws Error:
 * * If ASTM message is malformed.
 * * If checksum verification fails. TODO
 **/
-function decodeMessage(message)***REMOVED***
-    if (!(message.startsWith(token.STX) && message.endsWith(token.CRLF)))***REMOVED***
+function decodeMessage(message){
+    if (!(message.startsWith(token.STX) && message.endsWith(token.CRLF))){
         throw new Error('Malformed ASTM message. Expected that it will started with STX and followed by CRLF characters. Got:' + message);
-***REMOVED***
+    }
     
     var STXIndex = -1;
     var fraimeMerge = [];
     var fraime = "";
     var msg = message.slice(1); // Remove first STX
-    while (msg.indexOf(token.STX) > -1 )***REMOVED***
+    while (msg.indexOf(token.STX) > -1 ){
         STXIndex = msg.indexOf(token.STX);
         fraime = message.slice(0,STXIndex + 1);
         fraime = decodeFrame(fraime);
@@ -66,7 +66,7 @@ function decodeMessage(message)***REMOVED***
         
         msg = msg.slice(STXIndex + 1);
         message = message.slice(STXIndex + 1);
-***REMOVED***
+    }
 
     fraime = decodeFrame(message); // Last frame(should contains ETX)
     fraimeMerge.push(fraime);
@@ -76,13 +76,13 @@ function decodeMessage(message)***REMOVED***
     var recordsArray = records.split(token.RECORD_SEP);
     
     var records = [];
-    for (var i = 0; i < recordsArray.length; i++) ***REMOVED***
+    for (var i = 0; i < recordsArray.length; i++) {
         records.push(decodeRecord(recordsArray[i]));
-***REMOVED***
+    }
     return records
-***REMOVED***
+}
 
-function decodeFrame(fraime)***REMOVED***
+function decodeFrame(fraime){
     // Decodes ASTM frame 
     fraime = fraime.slice(1);
     var fraime_cs = fraime.slice(0,-2);
@@ -91,82 +91,82 @@ function decodeFrame(fraime)***REMOVED***
     var css = makeChecksum(fraime);
     
     // TODO Validate checksum
-    // if (cs !== css)***REMOVED***
+    // if (cs !== css){
         // throw new Error('Checksum failure: expected ' + cs + ', calculated '+ css); 
-    // ***REMOVED***
+    // }
     
-    if (fraime.endsWith(token.CR + token.ETX))***REMOVED***
+    if (fraime.endsWith(token.CR + token.ETX)){
         fraime = fraime.slice(0,-2);
-***REMOVED***
-    else if (fraime.endsWith(token.ETB))***REMOVED***
+    }
+    else if (fraime.endsWith(token.ETB)){
         fraime = fraime.slice(0,-1);
-***REMOVED***
-    else***REMOVED***
+    }
+    else{
         throw new Error('Incomplete frame data ' + fraime + '. Expected trailing <CR><ETX> or <ETB> chars');
-***REMOVED***
+    }
     var seq = fraime.slice(0,1);
-    if (!isDigit(seq))***REMOVED***
+    if (!isDigit(seq)){
         throw new Error('Malformed ASTM frame. Expected leading seq number '+ fraime);
-***REMOVED***
+    }
     return fraime.slice(1);
-***REMOVED***
+}
 
 
-function decodeRecord(record)***REMOVED***
+function decodeRecord(record){
     // Decodes ASTM record message
     var fields = [];
     var fieldsArray = record.split(token.FIELD_SEP);
-    for (var i = 0; i < fieldsArray.length; i++) ***REMOVED***
+    for (var i = 0; i < fieldsArray.length; i++) {
         var item = fieldsArray[i];
-        if (item.indexOf(token.REPEAT_SEP)> -1)***REMOVED***
+        if (item.indexOf(token.REPEAT_SEP)> -1){
             item = decodeRepeatedComponent(item);
-    ***REMOVED***
-        else if (item.indexOf(token.COMPONENT_SEP)> -1)***REMOVED***
+        }
+        else if (item.indexOf(token.COMPONENT_SEP)> -1){
             item = decodeComponent(item);
-    ***REMOVED***
-        else***REMOVED***
+        }
+        else{
             item = item;
-    ***REMOVED***
+        }
         
-        if (item)***REMOVED***
+        if (item){
             fields.push(item);
-    ***REMOVED***
-        else***REMOVED***
+        }
+        else{
             fields.push(null);
-    ***REMOVED***
-***REMOVED***
+        }
+    }
     return fields;
-***REMOVED***
+}
 
 
-function decodeComponent(field)***REMOVED***
+function decodeComponent(field){
     // Decodes ASTM field component
     var outComponents = [];
     var itemsArray = field.split(token.COMPONENT_SEP);
      
-    for (var i = 0; i < itemsArray.length; i++) ***REMOVED***
+    for (var i = 0; i < itemsArray.length; i++) {
         var item = itemsArray[i];
-        if (item)***REMOVED***
+        if (item){
             outComponents.push(item);
-    ***REMOVED***
-        else***REMOVED***
+        }
+        else{
             outComponents.push(null);
-    ***REMOVED***
-***REMOVED***
+        }
+    }
     return outComponents;
-***REMOVED***
+}
 
-function decodeRepeatedComponent(component)***REMOVED***
+function decodeRepeatedComponent(component){
     // Decodes ASTM field repeated component
     var outRepeatedComponent = [];
     var itemsArray = component.split(token.REPEAT_SEP);
-    for (var i = 0; i < itemsArray.length; i++) ***REMOVED***
+    for (var i = 0; i < itemsArray.length; i++) {
         var item = itemsArray[i];
         outRepeatedComponent.push(decodeComponent(item));
-***REMOVED***
+    }
     outRepeatedComponent;
     return outRepeatedComponent
-***REMOVED***
+}
 
 
 
@@ -179,129 +179,129 @@ function decodeRepeatedComponent(component)***REMOVED***
 * not null), then it will be split by chunks.
 *
 * @param records: Array of ASTM records.
-* @param ***REMOVED***int***REMOVED*** size: Chunk size in bytes.
-* @param ***REMOVED***int***REMOVED*** seq: Frame start sequence number.
+* @param {int} size: Chunk size in bytes.
+* @param {int} seq: Frame start sequence number.
 * @return: List of ASTM message chunks.
 **/
-function encode(records, encoding, size, seq)***REMOVED***
+function encode(records, encoding, size, seq){
     encoding = typeof encoding !== 'undefined' ? encoding : token.ENCODING;
     seq = typeof seq !== 'undefined' ? seq : 1;
     size = typeof size !== 'undefined' ? size : 247;
     var msg = encodeMessage(seq, records, encoding);
 
-    if (size && msg.length > size)***REMOVED***
+    if (size && msg.length > size){
         return split(msg, size);
-***REMOVED***
+    }
     return [msg];
-***REMOVED***
+}
 
 
             
 /**
 * Encodes ASTM message.
-* @param ***REMOVED***int***REMOVED*** seq: Frame sequence number.
+* @param {int} seq: Frame sequence number.
 * @param records: List of ASTM records.
-* @param ***REMOVED***string***REMOVED*** encoding: Data encoding.
-* @return ***REMOVED***string***REMOVED***: ASTM complete message with checksum and other control characters.
+* @param {string} encoding: Data encoding.
+* @return {string}: ASTM complete message with checksum and other control characters.
 **/
-function encodeMessage(seq, records, encoding)***REMOVED***
+function encodeMessage(seq, records, encoding){
     var data = [];
-    for (var i = 0; i < records.length; i++) ***REMOVED***
+    for (var i = 0; i < records.length; i++) {
         var record = records[i];
         // logger.info(record);
         data.push(encodeRecord(record,encoding));
-***REMOVED***
+    }
     // logger.info(data);
     data = data.join(token.RECORD_SEP);
     data = [(seq % 8) , data, token.CR, token.ETX].join('');
     return [token.STX, data, makeChecksum(data), token.CR, token.LF].join('');
-***REMOVED***
+}
 
 /**
 * Encodes single ASTM record.
 * @param record: ASTM record. Each`string`-typed item counted as field
                * value, one level nested `array` counted as components
                * and second leveled - as repeated components.
-* @param ***REMOVED***string***REMOVED*** encoding: Data encoding.
-* @returns ***REMOVED***string***REMOVED***: Encoded ASTM record.
+* @param {string} encoding: Data encoding.
+* @returns {string}: Encoded ASTM record.
 **/
-function encodeRecord(record, encoding)***REMOVED***
+function encodeRecord(record, encoding){
     var fields = [];
     
-    for (var i = 0; i < record.length; i++) ***REMOVED***
+    for (var i = 0; i < record.length; i++) {
         var field = record[i];
-        if (typeof field === 'bytes')***REMOVED***
+        if (typeof field === 'bytes'){
             fields.push(field);
-    ***REMOVED***
-        else if (typeof field === 'string')***REMOVED***
+        }
+        else if (typeof field === 'string'){
             fields.push(field);
-    ***REMOVED***
-        else if (Object.prototype.toString.call(field) === '[object Array]')***REMOVED***
+        }
+        else if (Object.prototype.toString.call(field) === '[object Array]'){
             fields.push(encodeComponent(field, encoding));
-    ***REMOVED***
-        else if(typeof field === 'undefined' || field === null)***REMOVED***
+        }
+        else if(typeof field === 'undefined' || field === null){
             fields.push('');
-    ***REMOVED***
-        else***REMOVED***
+        }
+        else{
             fields.push(field);
-    ***REMOVED***
-***REMOVED***
+        }
+    }
     return fields.join(token.FIELD_SEP); 
-***REMOVED***
+}
 
-function encodeComponent(component, encoding)***REMOVED***
+function encodeComponent(component, encoding){
     // Encodes ASTM record field components
     var items = [];
-    for (var i = 0; i < component.length; i++) ***REMOVED***
+    for (var i = 0; i < component.length; i++) {
         var item = component[i];
-        if (typeof item === 'bytes')***REMOVED***
+        if (typeof item === 'bytes'){
             items.push(item);
-    ***REMOVED***
-        else if (typeof item === 'string')***REMOVED***
+        }
+        else if (typeof item === 'string'){
             items.push(item);
-    ***REMOVED***
-        else if (Object.prototype.toString.call(item) === '[object Array]')***REMOVED***
+        }
+        else if (Object.prototype.toString.call(item) === '[object Array]'){
             items.push(encodeRepeatedComponent(component, encoding));
             break;
-    ***REMOVED***
-        else if(typeof item === 'undefined' || item === null)***REMOVED***
+        }
+        else if(typeof item === 'undefined' || item === null){
             items.push('');
-    ***REMOVED***
-        else***REMOVED***
+        }
+        else{
             items.push(item);
-    ***REMOVED***
-***REMOVED***
+        }
+    }
      
     return items.join(token.COMPONENT_SEP);
-***REMOVED***
+}
 
 
-function encodeRepeatedComponent(components, encoding)***REMOVED***
+function encodeRepeatedComponent(components, encoding){
     // Encodes repeated components
     var items = []
-    for (var i = 0; i < components.length; i++) ***REMOVED***
+    for (var i = 0; i < components.length; i++) {
         var item = components[i];
         items.push(encodeComponent(item,encoding));
-***REMOVED***
+    }
     return items.join(token.REPEAT_SEP);
 
-***REMOVED***
+}
 
 /**
 * Merges ASTM message `chunks` into single message.
 * @param chunks: List of chunks as `bytes`.
 **/
-function joinChunks(chunks)***REMOVED***
+function joinChunks(chunks){
     var msg = '1';
     var chunksMsg = [];
-    for (var i = 0; i < chunks.length; i++) ***REMOVED***
+    for (var i = 0; i < chunks.length; i++) {
         var dataChunk = chunks[i].slice(2,-5);
         chunksMsg.push(dataChunk);
-***REMOVED***
+    }
     msg = msg + chunksMsg.join('') + token.ETX;
     var completeMsg = [token.STX, msg, makeChecksum(msg), token.CRLF]
     return completeMsg.join('');
-***REMOVED***
+}
 
 /**
 * Split `msg` into chunks with specified `size`.
@@ -311,85 +311,85 @@ function joinChunks(chunks)***REMOVED***
 * message terminator.
 *
 * @param msg: ASTM message.
-* @param ***REMOVED***int ***REMOVED***size: Chunk size in bytes.
+* @param {int }size: Chunk size in bytes.
 * :yield: `bytes`
 **/
-function split(msg, size)***REMOVED***
+function split(msg, size){
     var outputChunks = [];
     var frame = parseInt(msg.slice(1,2));
     var msg = msg.slice(2,-6);
-    if (size === null || size < 7)***REMOVED***
+    if (size === null || size < 7){
         throw new Error('Chunk size value could not be less then 7 or null');
-***REMOVED***
+    }
     var chunks = make_chunks(msg, size - 7);
     var firstChunks = chunks.slice(0,-1);
     var last = chunks.slice(-1);
     var idx = 0
-    for(var i = 0; i < firstChunks.length; i++)***REMOVED***
+    for(var i = 0; i < firstChunks.length; i++){
         idx = i;
         var chunk = firstChunks[idx];
         var item = ([((idx + frame) % 8),chunk,token.ETB]).join('');
         outputChunks.push(([token.STX,item,makeChecksum(item),token.CRLF]).join(''));
-***REMOVED***
+    }
     item = ([((idx + frame + 1) % 8),last,token.CR,token.ETX]).join('');
     outputChunks.push(([token.STX,item,makeChecksum(item),token.CRLF]).join(''));
     return outputChunks;
-***REMOVED***
+}
 
-function make_chunks(msg, size)***REMOVED***
+function make_chunks(msg, size){
     chunks = [];
     iterElems = [];
-    for(var i = 0; i < msg.length; i++)***REMOVED***
+    for(var i = 0; i < msg.length; i++){
         iterElems.push(msg.slice(i,i+1));
-***REMOVED***
-    while(iterElems.length) ***REMOVED***
+    }
+    while(iterElems.length) {
         chunks.push(iterElems.splice(0,size).join(''));
-***REMOVED***
+    }
     return chunks;
-***REMOVED***
+}
 
 
-function isChunkedMessage(message)***REMOVED***
+function isChunkedMessage(message){
     //  Checks plain message for chunked byte.
-    if (message.length < 5)***REMOVED***
+    if (message.length < 5){
         return false;
-***REMOVED***
+    }
     var ETBIndex = message.indexOf(token.ETB);
     
-    if (ETBIndex > -1)***REMOVED***
-        if (ETBIndex === message.length -5 )***REMOVED***
+    if (ETBIndex > -1){
+        if (ETBIndex === message.length -5 ){
             return true;
-    ***REMOVED***
-        else***REMOVED***
+        }
+        else{
             return false;
-    ***REMOVED***
-***REMOVED***
-    else***REMOVED***
+        }
+    }
+    else{
         return false;
-***REMOVED***
-***REMOVED***
+    }
+}
 
 /**
 * Calculates checksum for specified message.
 * @param message: ASTM message.
 * @returns: Checksum value in hex base
 **/
-function makeChecksum(message)***REMOVED***
+function makeChecksum(message){
     var sumData = []
-    for(var i = 0; i < message.length; i++)***REMOVED***
+    for(var i = 0; i < message.length; i++){
         sumData.push(message.charCodeAt(i));
-***REMOVED***
+    }
     var suma = sumData.reduce((a, b) => a + b, 0) & 0xFF;
     return zfill(suma.toString(16).toUpperCase());
-***REMOVED***
+}
 
-function zfill(value)***REMOVED***
+function zfill(value){
     var str = "" + value;
     var pad = "00";
     return ans = pad.substring(0, pad.length - str.length) + str;
-***REMOVED***
+}
 
-module.exports = ***REMOVED***
+module.exports = {
     decode: decode,
     decodeMessage : decodeMessage,
     decodeFrame : decodeFrame,
@@ -403,4 +403,4 @@ module.exports = ***REMOVED***
     joinChunks: joinChunks,
     makeChecksum : makeChecksum,
     zfill: zfill,
-***REMOVED***;
+};

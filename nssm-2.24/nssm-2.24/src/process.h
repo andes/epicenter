@@ -3,11 +3,11 @@
 
 #include <tlhelp32.h>
 
-typedef struct ***REMOVED***
+typedef struct {
   unsigned long pid;
   unsigned long exitcode;
   int signalled;
-***REMOVED*** kill_t;
+} kill_t;
 
 int get_process_creation_time(HANDLE, FILETIME *);
 int get_process_exit_time(HANDLE, FILETIME *);

@@ -9,23 +9,23 @@ imports_t imports;
   absolutely need.  If we later add some indispensible imports we can
   return non-zero here to force an application exit.
 */
-HMODULE get_dll(const TCHAR *dll, unsigned long *error) ***REMOVED***
+HMODULE get_dll(const TCHAR *dll, unsigned long *error) {
   *error = 0;
 
   HMODULE ret = LoadLibrary(dll);
-  if (! ret) ***REMOVED***
+  if (! ret) {
     *error = GetLastError();
     log_event(EVENTLOG_WARNING_TYPE, NSSM_EVENT_LOADLIBRARY_FAILED, dll, error_string(*error), 0);
-  ***REMOVED***
+  }
 
   return ret;
-***REMOVED***
+}
 
-FARPROC get_import(HMODULE library, const char *function, unsigned long *error) ***REMOVED***
+FARPROC get_import(HMODULE library, const char *function, unsigned long *error) {
   *error = 0;
 
   FARPROC ret = GetProcAddress(library, function);
-  if (! ret) ***REMOVED***
+  if (! ret) {
     *error = GetLastError();
     TCHAR *function_name;
 #ifdef UNICODE
@@ -40,53 +40,53 @@ FARPROC get_import(HMODULE library, const char *function, unsigned long *error) 
 #ifdef UNICODE
     if (function_name) HeapFree(GetProcessHeap(), 0, function_name);
 #endif
-  ***REMOVED***
+  }
 
   return ret;
-***REMOVED***
+}
 
-int get_imports() ***REMOVED***
+int get_imports() {
   unsigned long error;
 
   ZeroMemory(&imports, sizeof(imports));
 
   imports.kernel32 = get_dll(_T("kernel32.dll"), &error);
-  if (imports.kernel32) ***REMOVED***
+  if (imports.kernel32) {
     imports.AttachConsole = (AttachConsole_ptr) get_import(imports.kernel32, "AttachConsole", &error);
-    if (! imports.AttachConsole) ***REMOVED***
+    if (! imports.AttachConsole) {
       if (error != ERROR_PROC_NOT_FOUND) return 2;
-***REMOVED***
+    }
 
     imports.SleepConditionVariableCS = (SleepConditionVariableCS_ptr) get_import(imports.kernel32, "SleepConditionVariableCS", &error);
-    if (! imports.SleepConditionVariableCS) ***REMOVED***
+    if (! imports.SleepConditionVariableCS) {
       if (error != ERROR_PROC_NOT_FOUND) return 3;
-***REMOVED***
+    }
 
     imports.WakeConditionVariable = (WakeConditionVariable_ptr) get_import(imports.kernel32, "WakeConditionVariable", &error);
-    if (! imports.WakeConditionVariable) ***REMOVED***
+    if (! imports.WakeConditionVariable) {
       if (error != ERROR_PROC_NOT_FOUND) return 4;
-***REMOVED***
-  ***REMOVED***
+    }
+  }
   else if (error != ERROR_MOD_NOT_FOUND) return 1;
 
   imports.advapi32 = get_dll(_T("advapi32.dll"), &error);
-  if (imports.advapi32) ***REMOVED***
+  if (imports.advapi32) {
     imports.CreateWellKnownSid = (CreateWellKnownSid_ptr) get_import(imports.advapi32, "CreateWellKnownSid", &error);
-    if (! imports.CreateWellKnownSid) ***REMOVED***
+    if (! imports.CreateWellKnownSid) {
       if (error != ERROR_PROC_NOT_FOUND) return 6;
-***REMOVED***
+    }
     imports.IsWellKnownSid = (IsWellKnownSid_ptr) get_import(imports.advapi32, "IsWellKnownSid", &error);
-    if (! imports.IsWellKnownSid) ***REMOVED***
+    if (! imports.IsWellKnownSid) {
       if (error != ERROR_PROC_NOT_FOUND) return 7;
-***REMOVED***
-  ***REMOVED***
+    }
+  }
   else if (error != ERROR_MOD_NOT_FOUND) return 5;
 
   return 0;
-***REMOVED***
+}
 
-void free_imports() ***REMOVED***
+void free_imports() {
   if (imports.kernel32) FreeLibrary(imports.kernel32);
   if (imports.advapi32) FreeLibrary(imports.advapi32);
   ZeroMemory(&imports, sizeof(imports));
-***REMOVED***
+}

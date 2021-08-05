@@ -58,7 +58,7 @@
 
 var MONTH_NAMES=new Array('January','February','March','April','May','June','July','August','September','October','November','December','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec');
 var DAY_NAMES=new Array('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sun','Mon','Tue','Wed','Thu','Fri','Sat');
-function LZ(x) ***REMOVED***return(x<0||x>9?"":"0")+x***REMOVED***
+function LZ(x) {return(x<0||x>9?"":"0")+x}
 
 // ------------------------------------------------------------------
 // isDate ( date_string, format_string )
@@ -67,11 +67,11 @@ function LZ(x) ***REMOVED***return(x<0||x>9?"":"0")+x***REMOVED***
 // It is recommended that you trim whitespace around the value before
 // passing it to this function, as whitespace is NOT ignored!
 // ------------------------------------------------------------------
-function isDate(val,format) ***REMOVED***
+function isDate(val,format) {
 	var date=getDateFromFormat(val,format);
-	if (date==0) ***REMOVED*** return false; ***REMOVED***
+	if (date==0) { return false; }
 	return true;
-	***REMOVED***
+	}
 
 // -------------------------------------------------------------------
 // compareDates(date1,date1format,date2,date2format)
@@ -81,24 +81,24 @@ function isDate(val,format) ***REMOVED***
 //   0 if date2 is greater than date1 of if they are the same
 //  -1 if either of the dates is in an invalid format
 // -------------------------------------------------------------------
-function compareDates(date1,dateformat1,date2,dateformat2) ***REMOVED***
+function compareDates(date1,dateformat1,date2,dateformat2) {
 	var d1=getDateFromFormat(date1,dateformat1);
 	var d2=getDateFromFormat(date2,dateformat2);
-	if (d1==0 || d2==0) ***REMOVED***
+	if (d1==0 || d2==0) {
 		return -1;
-		***REMOVED***
-	else if (d1 > d2) ***REMOVED***
+		}
+	else if (d1 > d2) {
 		return 1;
-		***REMOVED***
+		}
 	return 0;
-	***REMOVED***
+	}
 
 // ------------------------------------------------------------------
 // formatDate (date_object, format)
 // Returns a date in the output format specified.
 // The format string uses the same abbreviations as in getDateFromFormat()
 // ------------------------------------------------------------------
-function formatDate(date,format) ***REMOVED***
+function formatDate(date,format) {
 	format=format+"";
 	var result="";
 	var i_format=0;
@@ -114,7 +114,7 @@ function formatDate(date,format) ***REMOVED***
 	var yyyy,yy,MMM,MM,dd,hh,h,mm,ss,ampm,HH,H,KK,K,kk,k;
 	// Convert real date parts into formatted versions
 	var value=new Object();
-	if (y.length < 4) ***REMOVED***y=""+(y-0+1900);***REMOVED***
+	if (y.length < 4) {y=""+(y-0+1900);}
 	value["y"]=""+y;
 	value["yyyy"]=y;
 	value["yy"]=y.substring(2,4);
@@ -128,50 +128,50 @@ function formatDate(date,format) ***REMOVED***
 	value["EE"]=DAY_NAMES[E];
 	value["H"]=H;
 	value["HH"]=LZ(H);
-	if (H==0)***REMOVED***value["h"]=12;***REMOVED***
-	else if (H>12)***REMOVED***value["h"]=H-12;***REMOVED***
-	else ***REMOVED***value["h"]=H;***REMOVED***
+	if (H==0){value["h"]=12;}
+	else if (H>12){value["h"]=H-12;}
+	else {value["h"]=H;}
 	value["hh"]=LZ(value["h"]);
-	if (H>11)***REMOVED***value["K"]=H-12;***REMOVED*** else ***REMOVED***value["K"]=H;***REMOVED***
+	if (H>11){value["K"]=H-12;} else {value["K"]=H;}
 	value["k"]=H+1;
 	value["KK"]=LZ(value["K"]);
 	value["kk"]=LZ(value["k"]);
-	if (H > 11) ***REMOVED*** value["a"]="PM"; ***REMOVED***
-	else ***REMOVED*** value["a"]="AM"; ***REMOVED***
+	if (H > 11) { value["a"]="PM"; }
+	else { value["a"]="AM"; }
 	value["m"]=m;
 	value["mm"]=LZ(m);
 	value["s"]=s;
 	value["ss"]=LZ(s);
-	while (i_format < format.length) ***REMOVED***
+	while (i_format < format.length) {
 		c=format.charAt(i_format);
 		token="";
-		while ((format.charAt(i_format)==c) && (i_format < format.length)) ***REMOVED***
+		while ((format.charAt(i_format)==c) && (i_format < format.length)) {
 			token += format.charAt(i_format++);
-			***REMOVED***
-		if (value[token] != null) ***REMOVED*** result=result + value[token]; ***REMOVED***
-		else ***REMOVED*** result=result + token; ***REMOVED***
-		***REMOVED***
+			}
+		if (value[token] != null) { result=result + value[token]; }
+		else { result=result + token; }
+		}
 	return result;
-	***REMOVED***
+	}
 	
 // ------------------------------------------------------------------
 // Utility functions for parsing in getDateFromFormat()
 // ------------------------------------------------------------------
-function _isInteger(val) ***REMOVED***
+function _isInteger(val) {
 	var digits="1234567890";
-	for (var i=0; i < val.length; i++) ***REMOVED***
-		if (digits.indexOf(val.charAt(i))==-1) ***REMOVED*** return false; ***REMOVED***
-		***REMOVED***
+	for (var i=0; i < val.length; i++) {
+		if (digits.indexOf(val.charAt(i))==-1) { return false; }
+		}
 	return true;
-	***REMOVED***
-function _getInt(str,i,minlength,maxlength) ***REMOVED***
-	for (var x=maxlength; x>=minlength; x--) ***REMOVED***
+	}
+function _getInt(str,i,minlength,maxlength) {
+	for (var x=maxlength; x>=minlength; x--) {
 		var token=str.substring(i,i+x);
-		if (token.length < minlength) ***REMOVED*** return null; ***REMOVED***
-		if (_isInteger(token)) ***REMOVED*** return token; ***REMOVED***
-		***REMOVED***
+		if (token.length < minlength) { return null; }
+		if (_isInteger(token)) { return token; }
+		}
 	return null;
-	***REMOVED***
+	}
 	
 // ------------------------------------------------------------------
 // getDateFromFormat( date_string , format_string )
@@ -180,7 +180,7 @@ function _getInt(str,i,minlength,maxlength) ***REMOVED***
 // If the date string matches the format string, it returns the 
 // getTime() of the date. If it does not match, it returns 0.
 // ------------------------------------------------------------------
-function getDateFromFormat(val,format) ***REMOVED***
+function getDateFromFormat(val,format) {
 	val=val+"";
 	format=format+"";
 	var i_val=0;
@@ -198,111 +198,111 @@ function getDateFromFormat(val,format) ***REMOVED***
 	var ss=now.getSeconds();
 	var ampm="";
 	
-	while (i_format < format.length) ***REMOVED***
+	while (i_format < format.length) {
 		// Get next token from format string
 		c=format.charAt(i_format);
 		token="";
-		while ((format.charAt(i_format)==c) && (i_format < format.length)) ***REMOVED***
+		while ((format.charAt(i_format)==c) && (i_format < format.length)) {
 			token += format.charAt(i_format++);
-			***REMOVED***
+			}
 		// Extract contents of value based on format token
-		if (token=="yyyy" || token=="yy" || token=="y") ***REMOVED***
-			if (token=="yyyy") ***REMOVED*** x=4;y=4; ***REMOVED***
-			if (token=="yy")   ***REMOVED*** x=2;y=2; ***REMOVED***
-			if (token=="y")    ***REMOVED*** x=2;y=4; ***REMOVED***
+		if (token=="yyyy" || token=="yy" || token=="y") {
+			if (token=="yyyy") { x=4;y=4; }
+			if (token=="yy")   { x=2;y=2; }
+			if (token=="y")    { x=2;y=4; }
 			year=_getInt(val,i_val,x,y);
-			if (year==null) ***REMOVED*** return 0; ***REMOVED***
+			if (year==null) { return 0; }
 			i_val += year.length;
-			if (year.length==2) ***REMOVED***
-				if (year > 70) ***REMOVED*** year=1900+(year-0); ***REMOVED***
-				else ***REMOVED*** year=2000+(year-0); ***REMOVED***
-				***REMOVED***
-			***REMOVED***
-		else if (token=="MMM"||token=="NNN")***REMOVED***
+			if (year.length==2) {
+				if (year > 70) { year=1900+(year-0); }
+				else { year=2000+(year-0); }
+				}
+			}
+		else if (token=="MMM"||token=="NNN"){
 			month=0;
-			for (var i=0; i<MONTH_NAMES.length; i++) ***REMOVED***
+			for (var i=0; i<MONTH_NAMES.length; i++) {
 				var month_name=MONTH_NAMES[i];
-				if (val.substring(i_val,i_val+month_name.length).toLowerCase()==month_name.toLowerCase()) ***REMOVED***
-					if (token=="MMM"||(token=="NNN"&&i>11)) ***REMOVED***
+				if (val.substring(i_val,i_val+month_name.length).toLowerCase()==month_name.toLowerCase()) {
+					if (token=="MMM"||(token=="NNN"&&i>11)) {
 						month=i+1;
-						if (month>12) ***REMOVED*** month -= 12; ***REMOVED***
+						if (month>12) { month -= 12; }
 						i_val += month_name.length;
 						break;
-						***REMOVED***
-					***REMOVED***
-				***REMOVED***
-			if ((month < 1)||(month>12))***REMOVED***return 0;***REMOVED***
-			***REMOVED***
-		else if (token=="EE"||token=="E")***REMOVED***
-			for (var i=0; i<DAY_NAMES.length; i++) ***REMOVED***
+						}
+					}
+				}
+			if ((month < 1)||(month>12)){return 0;}
+			}
+		else if (token=="EE"||token=="E"){
+			for (var i=0; i<DAY_NAMES.length; i++) {
 				var day_name=DAY_NAMES[i];
-				if (val.substring(i_val,i_val+day_name.length).toLowerCase()==day_name.toLowerCase()) ***REMOVED***
+				if (val.substring(i_val,i_val+day_name.length).toLowerCase()==day_name.toLowerCase()) {
 					i_val += day_name.length;
 					break;
-					***REMOVED***
-				***REMOVED***
-			***REMOVED***
-		else if (token=="MM"||token=="M") ***REMOVED***
+					}
+				}
+			}
+		else if (token=="MM"||token=="M") {
 			month=_getInt(val,i_val,token.length,2);
-			if(month==null||(month<1)||(month>12))***REMOVED***return 0;***REMOVED***
-			i_val+=month.length;***REMOVED***
-		else if (token=="dd"||token=="d") ***REMOVED***
+			if(month==null||(month<1)||(month>12)){return 0;}
+			i_val+=month.length;}
+		else if (token=="dd"||token=="d") {
 			date=_getInt(val,i_val,token.length,2);
-			if(date==null||(date<1)||(date>31))***REMOVED***return 0;***REMOVED***
-			i_val+=date.length;***REMOVED***
-		else if (token=="hh"||token=="h") ***REMOVED***
+			if(date==null||(date<1)||(date>31)){return 0;}
+			i_val+=date.length;}
+		else if (token=="hh"||token=="h") {
 			hh=_getInt(val,i_val,token.length,2);
-			if(hh==null||(hh<1)||(hh>12))***REMOVED***return 0;***REMOVED***
-			i_val+=hh.length;***REMOVED***
-		else if (token=="HH"||token=="H") ***REMOVED***
+			if(hh==null||(hh<1)||(hh>12)){return 0;}
+			i_val+=hh.length;}
+		else if (token=="HH"||token=="H") {
 			hh=_getInt(val,i_val,token.length,2);
-			if(hh==null||(hh<0)||(hh>23))***REMOVED***return 0;***REMOVED***
-			i_val+=hh.length;***REMOVED***
-		else if (token=="KK"||token=="K") ***REMOVED***
+			if(hh==null||(hh<0)||(hh>23)){return 0;}
+			i_val+=hh.length;}
+		else if (token=="KK"||token=="K") {
 			hh=_getInt(val,i_val,token.length,2);
-			if(hh==null||(hh<0)||(hh>11))***REMOVED***return 0;***REMOVED***
-			i_val+=hh.length;***REMOVED***
-		else if (token=="kk"||token=="k") ***REMOVED***
+			if(hh==null||(hh<0)||(hh>11)){return 0;}
+			i_val+=hh.length;}
+		else if (token=="kk"||token=="k") {
 			hh=_getInt(val,i_val,token.length,2);
-			if(hh==null||(hh<1)||(hh>24))***REMOVED***return 0;***REMOVED***
-			i_val+=hh.length;hh--;***REMOVED***
-		else if (token=="mm"||token=="m") ***REMOVED***
+			if(hh==null||(hh<1)||(hh>24)){return 0;}
+			i_val+=hh.length;hh--;}
+		else if (token=="mm"||token=="m") {
 			mm=_getInt(val,i_val,token.length,2);
-			if(mm==null||(mm<0)||(mm>59))***REMOVED***return 0;***REMOVED***
-			i_val+=mm.length;***REMOVED***
-		else if (token=="ss"||token=="s") ***REMOVED***
+			if(mm==null||(mm<0)||(mm>59)){return 0;}
+			i_val+=mm.length;}
+		else if (token=="ss"||token=="s") {
 			ss=_getInt(val,i_val,token.length,2);
-			if(ss==null||(ss<0)||(ss>59))***REMOVED***return 0;***REMOVED***
-			i_val+=ss.length;***REMOVED***
-		else if (token=="a") ***REMOVED***
-			if (val.substring(i_val,i_val+2).toLowerCase()=="am") ***REMOVED***ampm="AM";***REMOVED***
-			else if (val.substring(i_val,i_val+2).toLowerCase()=="pm") ***REMOVED***ampm="PM";***REMOVED***
-			else ***REMOVED***return 0;***REMOVED***
-			i_val+=2;***REMOVED***
-		else ***REMOVED***
-			if (val.substring(i_val,i_val+token.length)!=token) ***REMOVED***return 0;***REMOVED***
-			else ***REMOVED***i_val+=token.length;***REMOVED***
-			***REMOVED***
-		***REMOVED***
+			if(ss==null||(ss<0)||(ss>59)){return 0;}
+			i_val+=ss.length;}
+		else if (token=="a") {
+			if (val.substring(i_val,i_val+2).toLowerCase()=="am") {ampm="AM";}
+			else if (val.substring(i_val,i_val+2).toLowerCase()=="pm") {ampm="PM";}
+			else {return 0;}
+			i_val+=2;}
+		else {
+			if (val.substring(i_val,i_val+token.length)!=token) {return 0;}
+			else {i_val+=token.length;}
+			}
+		}
 	// If there are any trailing characters left in the value, it doesn't match
-	if (i_val != val.length) ***REMOVED*** return 0; ***REMOVED***
+	if (i_val != val.length) { return 0; }
 	// Is date valid for month?
-	if (month==2) ***REMOVED***
+	if (month==2) {
 		// Check for leap year
-		if ( ( (year%4==0)&&(year%100 != 0) ) || (year%400==0) ) ***REMOVED*** // leap year
-			if (date > 29)***REMOVED*** return 0; ***REMOVED***
-			***REMOVED***
-		else ***REMOVED*** if (date > 28) ***REMOVED*** return 0; ***REMOVED*** ***REMOVED***
-		***REMOVED***
-	if ((month==4)||(month==6)||(month==9)||(month==11)) ***REMOVED***
-		if (date > 30) ***REMOVED*** return 0; ***REMOVED***
-		***REMOVED***
+		if ( ( (year%4==0)&&(year%100 != 0) ) || (year%400==0) ) { // leap year
+			if (date > 29){ return 0; }
+			}
+		else { if (date > 28) { return 0; } }
+		}
+	if ((month==4)||(month==6)||(month==9)||(month==11)) {
+		if (date > 30) { return 0; }
+		}
 	// Correct hours value
-	if (hh<12 && ampm=="PM") ***REMOVED*** hh=hh-0+12; ***REMOVED***
-	else if (hh>11 && ampm=="AM") ***REMOVED*** hh-=12; ***REMOVED***
+	if (hh<12 && ampm=="PM") { hh=hh-0+12; }
+	else if (hh>11 && ampm=="AM") { hh-=12; }
 	var newdate=new Date(year,month-1,date,hh,mm,ss);
 	return newdate; //.getTime();
-	***REMOVED***
+	}
 
 // ------------------------------------------------------------------
 // parseDate( date_string [, prefer_euro_format] )
@@ -317,25 +317,25 @@ function getDateFromFormat(val,format) ***REMOVED***
 // for formats like d/M/y (european format) before M/d/y (American).
 // Returns a Date object or null if no patterns match.
 // ------------------------------------------------------------------
-function parseDate(val) ***REMOVED***
+function parseDate(val) {
 	var preferEuro=(arguments.length==2)?arguments[1]:false;
 	generalFormats=new Array('y-M-d','MMM d, y','MMM d,y','y-MMM-d','d-MMM-y','MMM d');
 	monthFirst=new Array('M/d/y','M-d-y','M.d.y','MMM-d','M/d','M-d');
 	dateFirst =new Array('d/M/y','d-M-y','d.M.y','d-MMM','d/M','d-M');
 	var checkList=new Array('generalFormats',preferEuro?'dateFirst':'monthFirst',preferEuro?'monthFirst':'dateFirst');
 	var d=null;
-	for (var i=0; i<checkList.length; i++) ***REMOVED***
+	for (var i=0; i<checkList.length; i++) {
 		var l=window[checkList[i]];
-		for (var j=0; j<l.length; j++) ***REMOVED***
+		for (var j=0; j<l.length; j++) {
 			d=getDateFromFormat(val,l[j]);
-			if (d!=0) ***REMOVED*** return new Date(d); ***REMOVED***
-			***REMOVED***
-		***REMOVED***
+			if (d!=0) { return new Date(d); }
+			}
+		}
 	return null;
-	***REMOVED***
+	}
 
-module.exports = ***REMOVED***
+module.exports = {
     getDateFromFormat : getDateFromFormat,
     formatDate: formatDate,
-***REMOVED***
+}
     

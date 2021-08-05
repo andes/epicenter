@@ -29,7 +29,7 @@
 #define NSSM_ROTATE_ONLINE 1
 #define NSSM_ROTATE_ONLINE_ASAP 2
 
-typedef struct ***REMOVED***
+typedef struct {
   bool native;
   TCHAR name[SERVICE_NAME_LENGTH];
   TCHAR displayname[SERVICE_NAME_LENGTH];
@@ -101,7 +101,7 @@ typedef struct ***REMOVED***
   FILETIME creation_time;
   FILETIME exit_time;
   TCHAR *initial_env;
-***REMOVED*** nssm_service_t;
+} nssm_service_t;
 
 void WINAPI service_main(unsigned long, TCHAR **);
 TCHAR *service_control_text(unsigned long);

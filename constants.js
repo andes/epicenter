@@ -32,7 +32,7 @@ var COMPONENT_SEP = '\x5E'; // ^  //
 // Date escape token.
 var ESCAPE_SEP    = '\x26'; // &  //
 
-module.exports = ***REMOVED***
+module.exports = {
     ENCODING: ENCODING,
     STX : STX,
     ETX : ETX,
@@ -49,4 +49,4 @@ module.exports = ***REMOVED***
     REPEAT_SEP    : REPEAT_SEP,
     COMPONENT_SEP : COMPONENT_SEP,
     ESCAPE_SEP    : ESCAPE_SEP
-***REMOVED***;
+};

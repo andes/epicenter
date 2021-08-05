@@ -11,7 +11,7 @@
 #define NSSM_STDERR_DISPOSITION OPEN_ALWAYS
 #define NSSM_STDERR_FLAGS FILE_ATTRIBUTE_NORMAL
 
-typedef struct ***REMOVED***
+typedef struct {
   TCHAR *service_name;
   TCHAR *path;
   unsigned long sharing;
@@ -22,7 +22,7 @@ typedef struct ***REMOVED***
   __int64 size;
   unsigned long *tid_ptr;
   unsigned long *rotate_online;
-***REMOVED*** logger_t;
+} logger_t;
 
 int get_createfile_parameters(HKEY, TCHAR *, TCHAR *, unsigned long *, unsigned long, unsigned long *, unsigned long, unsigned long *, unsigned long);
 int set_createfile_parameter(HKEY, TCHAR *, TCHAR *, unsigned long);

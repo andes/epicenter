@@ -22,14 +22,14 @@
 #define DEPENDENCY_GROUPS (1 << 1)
 #define DEPENDENCY_ALL (DEPENDENCY_SERVICES|DEPENDENCY_GROUPS)
 
-typedef union ***REMOVED***
+typedef union {
   unsigned long numeric;
   TCHAR *string;
-***REMOVED*** value_t;
+} value_t;
 
 typedef int (*setting_function_t)(const TCHAR *, void *, const TCHAR *, void *, value_t *, const TCHAR *);
 
-typedef struct ***REMOVED***
+typedef struct {
   const TCHAR *name;
   unsigned long type;
   void *default_value;
@@ -37,7 +37,7 @@ typedef struct ***REMOVED***
   int additional;
   setting_function_t set;
   setting_function_t get;
-***REMOVED*** settings_t;
+} settings_t;
 
 int set_setting(const TCHAR *, HKEY, settings_t *, value_t *, const TCHAR *);
 int set_setting(const TCHAR *, SC_HANDLE, settings_t *, value_t *, const TCHAR *);

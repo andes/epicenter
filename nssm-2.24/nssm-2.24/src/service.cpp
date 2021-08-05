@@ -6,14 +6,14 @@ bool use_critical_section;
 extern imports_t imports;
 extern settings_t settings[];
 
-const TCHAR *exit_action_strings[] = ***REMOVED*** _T("Restart"), _T("Ignore"), _T("Exit"), _T("Suicide"), 0 ***REMOVED***;
-const TCHAR *startup_strings[] = ***REMOVED*** _T("SERVICE_AUTO_START"), _T("SERVICE_DELAYED_AUTO_START"), _T("SERVICE_DEMAND_START"), _T("SERVICE_DISABLED"), 0 ***REMOVED***;
-const TCHAR *priority_strings[] = ***REMOVED*** _T("REALTIME_PRIORITY_CLASS"), _T("HIGH_PRIORITY_CLASS"), _T("ABOVE_NORMAL_PRIORITY_CLASS"), _T("NORMAL_PRIORITY_CLASS"), _T("BELOW_NORMAL_PRIORITY_CLASS"), _T("IDLE_PRIORITY_CLASS"), 0 ***REMOVED***;
+const TCHAR *exit_action_strings[] = { _T("Restart"), _T("Ignore"), _T("Exit"), _T("Suicide"), 0 };
+const TCHAR *startup_strings[] = { _T("SERVICE_AUTO_START"), _T("SERVICE_DELAYED_AUTO_START"), _T("SERVICE_DEMAND_START"), _T("SERVICE_DISABLED"), 0 };
+const TCHAR *priority_strings[] = { _T("REALTIME_PRIORITY_CLASS"), _T("HIGH_PRIORITY_CLASS"), _T("ABOVE_NORMAL_PRIORITY_CLASS"), _T("NORMAL_PRIORITY_CLASS"), _T("BELOW_NORMAL_PRIORITY_CLASS"), _T("IDLE_PRIORITY_CLASS"), 0 };
 
-typedef struct ***REMOVED***
+typedef struct {
   int first;
   int last;
-***REMOVED*** list_t;
+} list_t;
 
 /*
   Check the status in response to a control.
@@ -21,10 +21,10 @@ typedef struct ***REMOVED***
             0 if the status is desired, eg STOPPED following CONTROL_STOP.
            -1 if the status is undesired, eg STOPPED following CONTROL_START.
 */
-static inline int service_control_response(unsigned long control, unsigned long status) ***REMOVED***
-  switch (control) ***REMOVED***
+static inline int service_control_response(unsigned long control, unsigned long status) {
+  switch (control) {
     case NSSM_SERVICE_CONTROL_START:
-      switch (status) ***REMOVED***
+      switch (status) {
         case SERVICE_START_PENDING:
           return 1;
 
@@ -33,11 +33,11 @@ static inline int service_control_response(unsigned long control, unsigned long 
 
         default:
           return -1;
-  ***REMOVED***
+      }
 
     case SERVICE_CONTROL_STOP:
     case SERVICE_CONTROL_SHUTDOWN:
-      switch (status) ***REMOVED***
+      switch (status) {
         case SERVICE_STOP_PENDING:
           return 1;
 
@@ -46,10 +46,10 @@ static inline int service_control_response(unsigned long control, unsigned long 
 
         default:
           return -1;
-  ***REMOVED***
+      }
 
     case SERVICE_CONTROL_PAUSE:
-      switch (status) ***REMOVED***
+      switch (status) {
         case SERVICE_PAUSE_PENDING:
           return 1;
 
@@ -58,10 +58,10 @@ static inline int service_control_response(unsigned long control, unsigned long 
 
         default:
           return -1;
-  ***REMOVED***
+      }
 
     case SERVICE_CONTROL_CONTINUE:
-      switch (status) ***REMOVED***
+      switch (status) {
         case SERVICE_CONTINUE_PENDING:
           return 1;
 
@@ -70,36 +70,36 @@ static inline int service_control_response(unsigned long control, unsigned long 
 
         default:
           return -1;
-  ***REMOVED***
+      }
 
     case SERVICE_CONTROL_INTERROGATE:
       return 0;
-  ***REMOVED***
+  }
 
   return 0;
-***REMOVED***
+}
 
-static inline int await_service_control_response(unsigned long control, SC_HANDLE service_handle, SERVICE_STATUS *service_status, unsigned long initial_status) ***REMOVED***
+static inline int await_service_control_response(unsigned long control, SC_HANDLE service_handle, SERVICE_STATUS *service_status, unsigned long initial_status) {
   int tries = 0;
-  while (QueryServiceStatus(service_handle, service_status)) ***REMOVED***
+  while (QueryServiceStatus(service_handle, service_status)) {
     int response = service_control_response(control, service_status->dwCurrentState);
     /* Alas we can't WaitForSingleObject() on an SC_HANDLE. */
     if (! response) return response;
-    if (response > 0 || service_status->dwCurrentState == initial_status) ***REMOVED***
+    if (response > 0 || service_status->dwCurrentState == initial_status) {
       if (++tries > 10) return response;
       Sleep(50 * tries);
-***REMOVED***
+    }
     else return response;
-  ***REMOVED***
+  }
   return -1;
-***REMOVED***
+}
 
-int affinity_mask_to_string(__int64 mask, TCHAR **string) ***REMOVED***
+int affinity_mask_to_string(__int64 mask, TCHAR **string) {
   if (! string) return 1;
-  if (! mask) ***REMOVED***
+  if (! mask) {
     *string = 0;
     return 0;
-  ***REMOVED***
+  }
 
   __int64 i, n;
 
@@ -107,16 +107,16 @@ int affinity_mask_to_string(__int64 mask, TCHAR **string) ***REMOVED***
   list_t set[64];
   for (n = 0; n < _countof(set); n++) set[n].first = set[n].last = -1;
 
-  for (i = 0, n = 0; i < _countof(set); i++) ***REMOVED***
-    if (mask & (1LL << i)) ***REMOVED***
+  for (i = 0, n = 0; i < _countof(set); i++) {
+    if (mask & (1LL << i)) {
       if (set[n].first == -1) set[n].first = set[n].last = (int) i;
       else if (set[n].last == (int) i - 1) set[n].last = (int) i;
-      else ***REMOVED***
+      else {
         n++;
         set[n].first = set[n].last = (int) i;
-  ***REMOVED***
-***REMOVED***
-  ***REMOVED***
+      }
+    }
+  }
 
   /* Worst case is 2x2 characters for first and last CPU plus - and/or , */
   size_t len = (size_t) (n + 1) * 6;
@@ -125,30 +125,30 @@ int affinity_mask_to_string(__int64 mask, TCHAR **string) ***REMOVED***
 
   size_t s = 0;
   int ret;
-  for (i = 0; i <= n; i++) ***REMOVED***
+  for (i = 0; i <= n; i++) {
     if (i) (*string)[s++] = _T(',');
     ret = _sntprintf_s(*string + s, 3, _TRUNCATE, _T("%u"), set[i].first);
-    if (ret < 0) ***REMOVED***
+    if (ret < 0) {
       HeapFree(GetProcessHeap(), 0, *string);
       *string = 0;
       return 3;
-***REMOVED***
+    }
     else s += ret;
-    if (set[i].last != set[i].first) ***REMOVED***
+    if (set[i].last != set[i].first) {
       ret =_sntprintf_s(*string + s, 4, _TRUNCATE, _T("%c%u"), (set[i].last == set[i].first + 1) ? _T(',') : _T('-'), set[i].last);
-      if (ret < 0) ***REMOVED***
+      if (ret < 0) {
         HeapFree(GetProcessHeap(), 0, *string);
         *string = 0;
         return 4;
-  ***REMOVED***
+      }
       else s += ret;
-***REMOVED***
-  ***REMOVED***
+    }
+  }
 
   return 0;
-***REMOVED***
+}
 
-int affinity_string_to_mask(TCHAR *string, __int64 *mask) ***REMOVED***
+int affinity_string_to_mask(TCHAR *string, __int64 *mask) {
   if (! mask) return 1;
 
   *mask = 0LL;
@@ -166,14 +166,14 @@ int affinity_string_to_mask(TCHAR *string, __int64 *mask) ***REMOVED***
   for (n = 0; n < _countof(set); n++) set[n].first = set[n].last = -1;
   n = 0;
 
-  while (*s) ***REMOVED***
+  while (*s) {
     ret = str_number(s, &number, &end);
     s = end;
-    if (ret == 0 || ret == 2) ***REMOVED***
+    if (ret == 0 || ret == 2) {
       if (number >= _countof(set)) return 2;
       set[n].first = set[n].last = (int) number;
 
-      switch (*s) ***REMOVED***
+      switch (*s) {
         case 0:
           break;
 
@@ -185,127 +185,127 @@ int affinity_string_to_mask(TCHAR *string, __int64 *mask) ***REMOVED***
         case _T('-'):
           if (! *(++s)) return 3;
           ret = str_number(s, &number, &end);
-          if (ret == 0 || ret == 2) ***REMOVED***
+          if (ret == 0 || ret == 2) {
             s = end;
-            if (! *s || *s == _T(',')) ***REMOVED***
+            if (! *s || *s == _T(',')) {
               set[n].last = (int) number;
               if (! *s) break;
               n++;
               s++;
-        ***REMOVED***
+            }
             else return 3;
-      ***REMOVED***
+          }
           else return 3;
           break;
 
         default:
           return 3;
-  ***REMOVED***
-***REMOVED***
+      }
+    }
     else return 4;
-  ***REMOVED***
+  }
 
-  for (i = 0; i <= n; i++) ***REMOVED***
+  for (i = 0; i <= n; i++) {
     for (int j = set[i].first; j <= set[i].last; j++) (__int64) *mask |= (1LL << (__int64) j);
-  ***REMOVED***
+  }
 
   return 0;
-***REMOVED***
+}
 
-inline unsigned long priority_mask() ***REMOVED***
+inline unsigned long priority_mask() {
  return REALTIME_PRIORITY_CLASS | HIGH_PRIORITY_CLASS | ABOVE_NORMAL_PRIORITY_CLASS | NORMAL_PRIORITY_CLASS | BELOW_NORMAL_PRIORITY_CLASS | IDLE_PRIORITY_CLASS;
-***REMOVED***
+}
 
-int priority_constant_to_index(unsigned long constant) ***REMOVED***
-  switch (constant & priority_mask()) ***REMOVED***
+int priority_constant_to_index(unsigned long constant) {
+  switch (constant & priority_mask()) {
     case REALTIME_PRIORITY_CLASS: return NSSM_REALTIME_PRIORITY;
     case HIGH_PRIORITY_CLASS: return NSSM_HIGH_PRIORITY;
     case ABOVE_NORMAL_PRIORITY_CLASS: return NSSM_ABOVE_NORMAL_PRIORITY;
     case BELOW_NORMAL_PRIORITY_CLASS: return NSSM_BELOW_NORMAL_PRIORITY;
     case IDLE_PRIORITY_CLASS: return NSSM_IDLE_PRIORITY;
-  ***REMOVED***
+  }
   return NSSM_NORMAL_PRIORITY;
-***REMOVED***
+}
 
-unsigned long priority_index_to_constant(int index) ***REMOVED***
-  switch (index) ***REMOVED***
+unsigned long priority_index_to_constant(int index) {
+  switch (index) {
     case NSSM_REALTIME_PRIORITY: return REALTIME_PRIORITY_CLASS;
     case NSSM_HIGH_PRIORITY: return HIGH_PRIORITY_CLASS;
     case NSSM_ABOVE_NORMAL_PRIORITY: return ABOVE_NORMAL_PRIORITY_CLASS;
     case NSSM_BELOW_NORMAL_PRIORITY: return BELOW_NORMAL_PRIORITY_CLASS;
     case NSSM_IDLE_PRIORITY: return IDLE_PRIORITY_CLASS;
-  ***REMOVED***
+  }
   return NORMAL_PRIORITY_CLASS;
-***REMOVED***
+}
 
-static inline unsigned long throttle_milliseconds(unsigned long throttle) ***REMOVED***
+static inline unsigned long throttle_milliseconds(unsigned long throttle) {
   /* pow() operates on doubles. */
   unsigned long ret = 1; for (unsigned long i = 1; i < throttle; i++) ret *= 2;
   return ret * 1000;
-***REMOVED***
+}
 
 /*
   Wrapper to be called in a new thread so that we can acknowledge a STOP
   control immediately.
 */
-static unsigned long WINAPI shutdown_service(void *arg) ***REMOVED***
+static unsigned long WINAPI shutdown_service(void *arg) {
   return stop_service((nssm_service_t *) arg, 0, true, true);
-***REMOVED***
+}
 
 /* Connect to the service manager */
-SC_HANDLE open_service_manager(unsigned long access) ***REMOVED***
+SC_HANDLE open_service_manager(unsigned long access) {
   SC_HANDLE ret = OpenSCManager(0, SERVICES_ACTIVE_DATABASE, access);
-  if (! ret) ***REMOVED***
+  if (! ret) {
     if (is_admin) log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_OPENSCMANAGER_FAILED, 0);
     return 0;
-  ***REMOVED***
+  }
 
   return ret;
-***REMOVED***
+}
 
 /* Open a service by name or display name. */
-SC_HANDLE open_service(SC_HANDLE services, TCHAR *service_name, unsigned long access, TCHAR *canonical_name, unsigned long canonical_namelen) ***REMOVED***
+SC_HANDLE open_service(SC_HANDLE services, TCHAR *service_name, unsigned long access, TCHAR *canonical_name, unsigned long canonical_namelen) {
   SC_HANDLE service_handle = OpenService(services, service_name, access);
-  if (service_handle) ***REMOVED***
-    if (canonical_name && canonical_name != service_name) ***REMOVED***
+  if (service_handle) {
+    if (canonical_name && canonical_name != service_name) {
       TCHAR displayname[SERVICE_NAME_LENGTH];
       unsigned long displayname_len = (unsigned long) _countof(displayname);
       GetServiceDisplayName(services, service_name, displayname, &displayname_len);
       unsigned long keyname_len = canonical_namelen;
       GetServiceKeyName(services, displayname, canonical_name, &keyname_len);
-***REMOVED***
+    }
     return service_handle;
-  ***REMOVED***
+  }
 
   unsigned long error = GetLastError();
-  if (error != ERROR_SERVICE_DOES_NOT_EXIST) ***REMOVED***
+  if (error != ERROR_SERVICE_DOES_NOT_EXIST) {
     print_message(stderr, NSSM_MESSAGE_OPENSERVICE_FAILED, error_string(GetLastError()));
     return 0;
-  ***REMOVED***
+  }
 
   /* We can't look for a display name because there's no buffer to store it. */
-  if (! canonical_name) ***REMOVED***
+  if (! canonical_name) {
     print_message(stderr, NSSM_MESSAGE_OPENSERVICE_FAILED, error_string(GetLastError()));
     return 0;
-  ***REMOVED***
+  }
 
   unsigned long bufsize, required, count, i;
   unsigned long resume = 0;
   EnumServicesStatus(services, SERVICE_DRIVER | SERVICE_FILE_SYSTEM_DRIVER | SERVICE_KERNEL_DRIVER | SERVICE_WIN32, SERVICE_STATE_ALL, 0, 0, &required, &count, &resume);
   error = GetLastError();
-  if (error != ERROR_MORE_DATA) ***REMOVED***
+  if (error != ERROR_MORE_DATA) {
     print_message(stderr, NSSM_MESSAGE_ENUMSERVICESSTATUS_FAILED, error_string(GetLastError()));
     return 0;
-  ***REMOVED***
+  }
 
   ENUM_SERVICE_STATUS *status = (ENUM_SERVICE_STATUS *) HeapAlloc(GetProcessHeap(), 0, required);
-  if (! status) ***REMOVED***
+  if (! status) {
     print_message(stderr, NSSM_MESSAGE_OUT_OF_MEMORY, _T("ENUM_SERVICE_STATUS"), _T("open_service()"));
     return 0;
-  ***REMOVED***
+  }
 
   bufsize = required;
-  while (true) ***REMOVED***
+  while (true) {
     /*
       EnumServicesStatus() returns:
       1 when it retrieved data and there's no more data to come.
@@ -314,73 +314,73 @@ SC_HANDLE open_service(SC_HANDLE services, TCHAR *service_name, unsigned long ac
       0 and sets last error to something else on error.
     */
     int ret = EnumServicesStatus(services, SERVICE_DRIVER | SERVICE_FILE_SYSTEM_DRIVER | SERVICE_KERNEL_DRIVER | SERVICE_WIN32, SERVICE_STATE_ALL, status, bufsize, &required, &count, &resume);
-    if (! ret) ***REMOVED***
+    if (! ret) {
       error = GetLastError();
-      if (error != ERROR_MORE_DATA) ***REMOVED***
+      if (error != ERROR_MORE_DATA) {
         HeapFree(GetProcessHeap(), 0, status);
         print_message(stderr, NSSM_MESSAGE_ENUMSERVICESSTATUS_FAILED, error_string(GetLastError()));
         return 0;
-  ***REMOVED***
-***REMOVED***
+      }
+    }
 
-    for (i = 0; i < count; i++) ***REMOVED***
-      if (str_equiv(status[i].lpDisplayName, service_name)) ***REMOVED***
-        if (_sntprintf_s(canonical_name, canonical_namelen, _TRUNCATE, _T("%s"), status[i].lpServiceName) < 0) ***REMOVED***
+    for (i = 0; i < count; i++) {
+      if (str_equiv(status[i].lpDisplayName, service_name)) {
+        if (_sntprintf_s(canonical_name, canonical_namelen, _TRUNCATE, _T("%s"), status[i].lpServiceName) < 0) {
           HeapFree(GetProcessHeap(), 0, status);
           print_message(stderr, NSSM_MESSAGE_OUT_OF_MEMORY, _T("canonical_name"), _T("open_service()"));
           return 0;
-    ***REMOVED***
+        }
 
         HeapFree(GetProcessHeap(), 0, status);
         return open_service(services, canonical_name, access, 0, 0);
-  ***REMOVED***
-***REMOVED***
+      }
+    }
 
     if (ret) break;
-  ***REMOVED***
+  }
 
   /* Recurse so we can get an error message. */
   return open_service(services, service_name, access, 0, 0);
-***REMOVED***
+}
 
-QUERY_SERVICE_CONFIG *query_service_config(const TCHAR *service_name, SC_HANDLE service_handle) ***REMOVED***
+QUERY_SERVICE_CONFIG *query_service_config(const TCHAR *service_name, SC_HANDLE service_handle) {
   QUERY_SERVICE_CONFIG *qsc;
   unsigned long bufsize;
   unsigned long error;
 
   QueryServiceConfig(service_handle, 0, 0, &bufsize);
   error = GetLastError();
-  if (error == ERROR_INSUFFICIENT_BUFFER) ***REMOVED***
+  if (error == ERROR_INSUFFICIENT_BUFFER) {
     qsc = (QUERY_SERVICE_CONFIG *) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, bufsize);
-    if (! qsc) ***REMOVED***
+    if (! qsc) {
       print_message(stderr, NSSM_MESSAGE_OUT_OF_MEMORY, _T("QUERY_SERVICE_CONFIG"), _T("query_service_config()"), 0);
       return 0;
-***REMOVED***
-  ***REMOVED***
-  else ***REMOVED***
+    }
+  }
+  else {
     print_message(stderr, NSSM_MESSAGE_QUERYSERVICECONFIG_FAILED, service_name, error_string(error), 0);
     return 0;
-  ***REMOVED***
+  }
 
-  if (! QueryServiceConfig(service_handle, qsc, bufsize, &bufsize)) ***REMOVED***
+  if (! QueryServiceConfig(service_handle, qsc, bufsize, &bufsize)) {
     HeapFree(GetProcessHeap(), 0, qsc);
     print_message(stderr, NSSM_MESSAGE_QUERYSERVICECONFIG_FAILED, service_name, error_string(GetLastError()), 0);
     return 0;
-  ***REMOVED***
+  }
 
   return qsc;
-***REMOVED***
+}
 
-int set_service_dependencies(const TCHAR *service_name, SC_HANDLE service_handle, TCHAR *buffer) ***REMOVED***
+int set_service_dependencies(const TCHAR *service_name, SC_HANDLE service_handle, TCHAR *buffer) {
   TCHAR *dependencies = _T("");
   unsigned long num_dependencies = 0;
 
-  if (buffer && buffer[0]) ***REMOVED***
+  if (buffer && buffer[0]) {
     SC_HANDLE services = open_service_manager(SC_MANAGER_CONNECT | SC_MANAGER_ENUMERATE_SERVICE);
-    if (! services) ***REMOVED***
+    if (! services) {
       print_message(stderr, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
       return 1;
-***REMOVED***
+    }
 
     /*
       Count the dependencies then allocate a buffer big enough for their
@@ -388,113 +388,113 @@ int set_service_dependencies(const TCHAR *service_name, SC_HANDLE service_handle
     */
     TCHAR *s;
     TCHAR *groups = 0;
-    for (s = buffer; *s; s++) ***REMOVED***
+    for (s = buffer; *s; s++) {
       num_dependencies++;
       if (*s == SC_GROUP_IDENTIFIER) groups = s;
       while (*s) s++;
-***REMOVED***
+    }
 
     /* At least one dependency is a group so we need to verify them. */
-    if (groups) ***REMOVED***
+    if (groups) {
       HKEY key;
-      if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, NSSM_REGISTRY_GROUPS, 0, KEY_READ, &key)) ***REMOVED***
+      if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, NSSM_REGISTRY_GROUPS, 0, KEY_READ, &key)) {
         _ftprintf(stderr, _T("%s: %s\n"), NSSM_REGISTRY_GROUPS, error_string(GetLastError()));
         return 2;
-  ***REMOVED***
+      }
 
       unsigned long type;
       unsigned long groupslen;
       unsigned long ret = RegQueryValueEx(key, NSSM_REG_GROUPS, 0, &type, NULL, &groupslen);
-      if (ret == ERROR_SUCCESS) ***REMOVED***
+      if (ret == ERROR_SUCCESS) {
         groups = (TCHAR *) HeapAlloc(GetProcessHeap(), 0, groupslen);
-        if (! groups) ***REMOVED***
+        if (! groups) {
           print_message(stderr, NSSM_MESSAGE_OUT_OF_MEMORY, _T("groups"), _T("set_service_dependencies()"));
           return 3;
-    ***REMOVED***
+        }
 
         ret = RegQueryValueEx(key, NSSM_REG_GROUPS, 0, &type, (unsigned char *) groups, &groupslen);
-        if (ret != ERROR_SUCCESS) ***REMOVED***
+        if (ret != ERROR_SUCCESS) {
           _ftprintf(stderr, _T("%s\\%s: %s"), NSSM_REGISTRY_GROUPS, NSSM_REG_GROUPS, error_string(GetLastError()));
           HeapFree(GetProcessHeap(), 0, groups);
           RegCloseKey(key);
           return 4;
-    ***REMOVED***
-  ***REMOVED***
-      else if (ret != ERROR_FILE_NOT_FOUND) ***REMOVED***
+        }
+      }
+      else if (ret != ERROR_FILE_NOT_FOUND) {
         _ftprintf(stderr, _T("%s\\%s: %s"), NSSM_REGISTRY_GROUPS, NSSM_REG_GROUPS, error_string(GetLastError()));
         RegCloseKey(key);
         return 4;
-  ***REMOVED***
+      }
 
       RegCloseKey(key);
 
-***REMOVED***
+    }
 
     unsigned long dependencieslen = (num_dependencies * SERVICE_NAME_LENGTH) + 2;
     dependencies = (TCHAR *) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dependencieslen * sizeof(TCHAR));
     size_t i = 0;
 
     TCHAR dependency[SERVICE_NAME_LENGTH];
-    for (s = buffer; *s; s++) ***REMOVED***
+    for (s = buffer; *s; s++) {
       /* Group? */
-      if (*s == SC_GROUP_IDENTIFIER) ***REMOVED***
+      if (*s == SC_GROUP_IDENTIFIER) {
         TCHAR *group = s + 1;
 
         bool ok = false;
-        if (*group) ***REMOVED***
-          for (TCHAR *g = groups; *g; g++) ***REMOVED***
-            if (str_equiv(g, group)) ***REMOVED***
+        if (*group) {
+          for (TCHAR *g = groups; *g; g++) {
+            if (str_equiv(g, group)) {
               ok = true;
               /* Set canonical name. */
               memmove(group, g, _tcslen(g) * sizeof(TCHAR));
               break;
-        ***REMOVED***
+            }
 
             while (*g) g++;
-      ***REMOVED***
-    ***REMOVED***
+          }
+        }
 
         if (ok) _sntprintf_s(dependency, _countof(dependency), _TRUNCATE, _T("%s"), s);
-        else ***REMOVED***
+        else {
           HeapFree(GetProcessHeap(), 0, dependencies);
           if (groups) HeapFree(GetProcessHeap(), 0, groups);
           _ftprintf(stderr, _T("%s: %s"), s, error_string(ERROR_SERVICE_DEPENDENCY_DELETED));
           return 5;
-    ***REMOVED***
-  ***REMOVED***
-      else ***REMOVED***
+        }
+      }
+      else {
         SC_HANDLE dependency_handle = open_service(services, s, SERVICE_QUERY_STATUS, dependency, _countof(dependency));
-        if (! dependency_handle) ***REMOVED***
+        if (! dependency_handle) {
           HeapFree(GetProcessHeap(), 0, dependencies);
           if (groups) HeapFree(GetProcessHeap(), 0, groups);
           CloseServiceHandle(services);
           _ftprintf(stderr, _T("%s: %s"), s, error_string(ERROR_SERVICE_DEPENDENCY_DELETED));
           return 5;
-    ***REMOVED***
-  ***REMOVED***
+        }
+      }
 
       size_t len = _tcslen(dependency) + 1;
       memmove(dependencies + i, dependency, len * sizeof(TCHAR));
       i += len;
 
       while (*s) s++;
-***REMOVED***
+    }
 
     if (groups) HeapFree(GetProcessHeap(), 0, groups);
     CloseServiceHandle(services);
-  ***REMOVED***
+  }
 
-  if (! ChangeServiceConfig(service_handle, SERVICE_NO_CHANGE, SERVICE_NO_CHANGE, SERVICE_NO_CHANGE, 0, 0, 0, dependencies, 0, 0, 0)) ***REMOVED***
+  if (! ChangeServiceConfig(service_handle, SERVICE_NO_CHANGE, SERVICE_NO_CHANGE, SERVICE_NO_CHANGE, 0, 0, 0, dependencies, 0, 0, 0)) {
     if (num_dependencies) HeapFree(GetProcessHeap(), 0, dependencies);
     print_message(stderr, NSSM_MESSAGE_CHANGESERVICECONFIG_FAILED, error_string(GetLastError()));
     return -1;
-  ***REMOVED***
+  }
 
   if (num_dependencies) HeapFree(GetProcessHeap(), 0, dependencies);
   return 0;
-***REMOVED***
+}
 
-int get_service_dependencies(const TCHAR *service_name, SC_HANDLE service_handle, TCHAR **buffer, unsigned long *bufsize, int type) ***REMOVED***
+int get_service_dependencies(const TCHAR *service_name, SC_HANDLE service_handle, TCHAR **buffer, unsigned long *bufsize, int type) {
   if (! buffer) return 1;
   if (! bufsize) return 2;
 
@@ -508,49 +508,49 @@ int get_service_dependencies(const TCHAR *service_name, SC_HANDLE service_handle
   if (! qsc->lpDependencies[0]) return 0;
 
   /* lpDependencies is doubly NULL terminated. */
-  while (qsc->lpDependencies[*bufsize]) ***REMOVED***
+  while (qsc->lpDependencies[*bufsize]) {
     while (qsc->lpDependencies[*bufsize]) ++*bufsize;
     ++*bufsize;
-  ***REMOVED***
+  }
 
   *bufsize += 2;
 
   *buffer = (TCHAR *) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, *bufsize * sizeof(TCHAR));
-  if (! *buffer) ***REMOVED***
+  if (! *buffer) {
     *bufsize = 0;
     print_message(stderr, NSSM_MESSAGE_OUT_OF_MEMORY, _T("lpDependencies"), _T("get_service_dependencies()"));
     return 4;
-  ***REMOVED***
+  }
 
   if (type == DEPENDENCY_ALL) memmove(*buffer, qsc->lpDependencies, *bufsize * sizeof(TCHAR));
-  else ***REMOVED***
+  else {
     TCHAR *s;
     size_t i = 0;
     *bufsize = 0;
-    for (s = qsc->lpDependencies; *s; s++) ***REMOVED***
+    for (s = qsc->lpDependencies; *s; s++) {
       /* Only copy the appropriate type of dependency. */
-      if ((*s == SC_GROUP_IDENTIFIER && type & DEPENDENCY_GROUPS) || (*s != SC_GROUP_IDENTIFIER && type & DEPENDENCY_SERVICES)) ***REMOVED***
+      if ((*s == SC_GROUP_IDENTIFIER && type & DEPENDENCY_GROUPS) || (*s != SC_GROUP_IDENTIFIER && type & DEPENDENCY_SERVICES)) {
         size_t len = _tcslen(s) + 1;
         *bufsize += (unsigned long) len;
         memmove(*buffer + i, s, len * sizeof(TCHAR));
         i += len;
-  ***REMOVED***
+      }
 
       while (*s) s++;
-***REMOVED***
+    }
     ++*bufsize;
-  ***REMOVED***
+  }
 
   HeapFree(GetProcessHeap(), 0, qsc);
 
   return 0;
-***REMOVED***
+}
 
-int get_service_dependencies(const TCHAR *service_name, SC_HANDLE service_handle, TCHAR **buffer, unsigned long *bufsize) ***REMOVED***
+int get_service_dependencies(const TCHAR *service_name, SC_HANDLE service_handle, TCHAR **buffer, unsigned long *bufsize) {
   return get_service_dependencies(service_name, service_handle, buffer, bufsize, DEPENDENCY_ALL);
-***REMOVED***
+}
 
-int set_service_description(const TCHAR *service_name, SC_HANDLE service_handle, TCHAR *buffer) ***REMOVED***
+int set_service_description(const TCHAR *service_name, SC_HANDLE service_handle, TCHAR *buffer) {
   SERVICE_DESCRIPTION description;
   ZeroMemory(&description, sizeof(description));
   /*
@@ -564,49 +564,49 @@ int set_service_description(const TCHAR *service_name, SC_HANDLE service_handle,
 
   log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_SERVICE_CONFIG_DESCRIPTION_FAILED, service_name, error_string(GetLastError()), 0);
   return 1;
-***REMOVED***
+}
 
-int get_service_description(const TCHAR *service_name, SC_HANDLE service_handle, unsigned long len, TCHAR *buffer) ***REMOVED***
+int get_service_description(const TCHAR *service_name, SC_HANDLE service_handle, unsigned long len, TCHAR *buffer) {
   if (! buffer) return 1;
 
   unsigned long bufsize;
   QueryServiceConfig2(service_handle, SERVICE_CONFIG_DESCRIPTION, 0, 0, &bufsize);
   unsigned long error = GetLastError();
-  if (error == ERROR_INSUFFICIENT_BUFFER) ***REMOVED***
+  if (error == ERROR_INSUFFICIENT_BUFFER) {
     SERVICE_DESCRIPTION *description = (SERVICE_DESCRIPTION *) HeapAlloc(GetProcessHeap(), 0, bufsize);
-    if (! description) ***REMOVED***
+    if (! description) {
       print_message(stderr, NSSM_MESSAGE_OUT_OF_MEMORY, _T("SERVICE_CONFIG_DESCRIPTION"), _T("get_service_description()"));
       return 2;
-***REMOVED***
+    }
 
-    if (QueryServiceConfig2(service_handle, SERVICE_CONFIG_DESCRIPTION, (unsigned char *) description, bufsize, &bufsize)) ***REMOVED***
+    if (QueryServiceConfig2(service_handle, SERVICE_CONFIG_DESCRIPTION, (unsigned char *) description, bufsize, &bufsize)) {
       if (description->lpDescription) _sntprintf_s(buffer, len, _TRUNCATE, _T("%s"), description->lpDescription);
       else ZeroMemory(buffer, len * sizeof(TCHAR));
       HeapFree(GetProcessHeap(), 0, description);
       return 0;
-***REMOVED***
-    else ***REMOVED***
+    }
+    else {
       HeapFree(GetProcessHeap(), 0, description);
       print_message(stderr, NSSM_MESSAGE_QUERYSERVICECONFIG2_FAILED, service_name, _T("SERVICE_CONFIG_DESCRIPTION"), error_string(error));
       return 3;
-***REMOVED***
-  ***REMOVED***
-  else ***REMOVED***
+    }
+  }
+  else {
     print_message(stderr, NSSM_MESSAGE_QUERYSERVICECONFIG2_FAILED, service_name, _T("SERVICE_CONFIG_DESCRIPTION"), error_string(error));
     return 4;
-  ***REMOVED***
+  }
 
   return 0;
-***REMOVED***
+}
 
-int get_service_startup(const TCHAR *service_name, SC_HANDLE service_handle, const QUERY_SERVICE_CONFIG *qsc, unsigned long *startup) ***REMOVED***
+int get_service_startup(const TCHAR *service_name, SC_HANDLE service_handle, const QUERY_SERVICE_CONFIG *qsc, unsigned long *startup) {
   if (! qsc) return 1;
 
-  switch (qsc->dwStartType) ***REMOVED***
+  switch (qsc->dwStartType) {
     case SERVICE_DEMAND_START: *startup = NSSM_STARTUP_MANUAL; break;
     case SERVICE_DISABLED: *startup = NSSM_STARTUP_DISABLED; break;
     default: *startup = NSSM_STARTUP_AUTOMATIC;
-  ***REMOVED***
+  }
 
   if (*startup != NSSM_STARTUP_AUTOMATIC) return 0;
 
@@ -615,35 +615,35 @@ int get_service_startup(const TCHAR *service_name, SC_HANDLE service_handle, con
   unsigned long error;
   QueryServiceConfig2(service_handle, SERVICE_CONFIG_DELAYED_AUTO_START_INFO, 0, 0, &bufsize);
   error = GetLastError();
-  if (error == ERROR_INSUFFICIENT_BUFFER) ***REMOVED***
+  if (error == ERROR_INSUFFICIENT_BUFFER) {
     SERVICE_DELAYED_AUTO_START_INFO *info = (SERVICE_DELAYED_AUTO_START_INFO *) HeapAlloc(GetProcessHeap(), 0, bufsize);
-    if (! info) ***REMOVED***
+    if (! info) {
       print_message(stderr, NSSM_MESSAGE_OUT_OF_MEMORY, _T("SERVICE_DELAYED_AUTO_START_INFO"), _T("get_service_startup()"));
       return 2;
-***REMOVED***
+    }
 
-    if (QueryServiceConfig2(service_handle, SERVICE_CONFIG_DELAYED_AUTO_START_INFO, (unsigned char *) info, bufsize, &bufsize)) ***REMOVED***
+    if (QueryServiceConfig2(service_handle, SERVICE_CONFIG_DELAYED_AUTO_START_INFO, (unsigned char *) info, bufsize, &bufsize)) {
       if (info->fDelayedAutostart) *startup = NSSM_STARTUP_DELAYED;
       HeapFree(GetProcessHeap(), 0, info);
       return 0;
-***REMOVED***
-    else ***REMOVED***
+    }
+    else {
       error = GetLastError();
-      if (error != ERROR_INVALID_LEVEL) ***REMOVED***
+      if (error != ERROR_INVALID_LEVEL) {
         print_message(stderr, NSSM_MESSAGE_QUERYSERVICECONFIG2_FAILED, service_name, _T("SERVICE_CONFIG_DELAYED_AUTO_START_INFO"), error_string(error));
         return 3;
-  ***REMOVED***
-***REMOVED***
-  ***REMOVED***
-  else if (error != ERROR_INVALID_LEVEL) ***REMOVED***
+      }
+    }
+  }
+  else if (error != ERROR_INVALID_LEVEL) {
     print_message(stderr, NSSM_MESSAGE_QUERYSERVICECONFIG2_FAILED, service_name, _T("SERVICE_DELAYED_AUTO_START_INFO"), error_string(error));
     return 3;
-  ***REMOVED***
+  }
 
   return 0;
-***REMOVED***
+}
 
-int get_service_username(const TCHAR *service_name, const QUERY_SERVICE_CONFIG *qsc, TCHAR **username, size_t *usernamelen) ***REMOVED***
+int get_service_username(const TCHAR *service_name, const QUERY_SERVICE_CONFIG *qsc, TCHAR **username, size_t *usernamelen) {
   if (! username) return 1;
   if (! usernamelen) return 1;
 
@@ -652,25 +652,25 @@ int get_service_username(const TCHAR *service_name, const QUERY_SERVICE_CONFIG *
 
   if (! qsc) return 1;
 
-  if (qsc->lpServiceStartName[0]) ***REMOVED***
+  if (qsc->lpServiceStartName[0]) {
     if (is_localsystem(qsc->lpServiceStartName)) return 0;
 
     size_t len = _tcslen(qsc->lpServiceStartName);
     *username = (TCHAR *) HeapAlloc(GetProcessHeap(), 0, (len + 1) * sizeof(TCHAR));
-    if (! *username) ***REMOVED***
+    if (! *username) {
       print_message(stderr, NSSM_MESSAGE_OUT_OF_MEMORY, _T("username"), _T("get_service_username()"));
       return 2;
-***REMOVED***
+    }
 
     memmove(*username, qsc->lpServiceStartName, (len + 1) * sizeof(TCHAR));
     *usernamelen = len;
-  ***REMOVED***
+  }
 
   return 0;
-***REMOVED***
+}
 
 /* Set default values which aren't zero. */
-void set_nssm_service_defaults(nssm_service_t *service) ***REMOVED***
+void set_nssm_service_defaults(nssm_service_t *service) {
   if (! service) return;
 
   service->type = SERVICE_WIN32_OWN_PROCESS;
@@ -689,23 +689,23 @@ void set_nssm_service_defaults(nssm_service_t *service) ***REMOVED***
   service->kill_console_delay = NSSM_KILL_CONSOLE_GRACE_PERIOD;
   service->kill_window_delay = NSSM_KILL_WINDOW_GRACE_PERIOD;
   service->kill_threads_delay = NSSM_KILL_THREADS_GRACE_PERIOD;
-***REMOVED***
+}
 
 /* Allocate and zero memory for a service. */
-nssm_service_t *alloc_nssm_service() ***REMOVED***
+nssm_service_t *alloc_nssm_service() {
   nssm_service_t *service = (nssm_service_t *) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(nssm_service_t));
   if (! service) log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_OUT_OF_MEMORY, _T("service"), _T("alloc_nssm_service()"), 0);
   return service;
-***REMOVED***
+}
 
 /* Free memory for a service. */
-void cleanup_nssm_service(nssm_service_t *service) ***REMOVED***
+void cleanup_nssm_service(nssm_service_t *service) {
   if (! service) return;
   if (service->username) HeapFree(GetProcessHeap(), 0, service->username);
-  if (service->password) ***REMOVED***
+  if (service->password) {
     SecureZeroMemory(service->password, service->passwordlen);
     HeapFree(GetProcessHeap(), 0, service->password);
-  ***REMOVED***
+  }
   if (service->dependencies) HeapFree(GetProcessHeap(), 0, service->dependencies);
   if (service->env) HeapFree(GetProcessHeap(), 0, service->env);
   if (service->env_extra) HeapFree(GetProcessHeap(), 0, service->env_extra);
@@ -716,10 +716,10 @@ void cleanup_nssm_service(nssm_service_t *service) ***REMOVED***
   if (service->throttle_timer) CloseHandle(service->throttle_timer);
   if (service->initial_env) FreeEnvironmentStrings(service->initial_env);
   HeapFree(GetProcessHeap(), 0, service);
-***REMOVED***
+}
 
 /* About to install the service */
-int pre_install_service(int argc, TCHAR **argv) ***REMOVED***
+int pre_install_service(int argc, TCHAR **argv) {
   nssm_service_t *service = alloc_nssm_service();
   set_nssm_service_defaults(service);
   if (argc) _sntprintf_s(service->name, _countof(service->name), _TRUNCATE, _T("%s"), argv[0]);
@@ -727,10 +727,10 @@ int pre_install_service(int argc, TCHAR **argv) ***REMOVED***
   /* Show the dialogue box if we didn't give the service name and path */
   if (argc < 2) return nssm_gui(IDD_INSTALL, service);
 
-  if (! service) ***REMOVED***
+  if (! service) {
     print_message(stderr, NSSM_MESSAGE_OUT_OF_MEMORY, _T("service"), _T("pre_install_service()"));
     return 1;
-  ***REMOVED***
+  }
   _sntprintf_s(service->exe, _countof(service->exe), _TRUNCATE, _T("%s"), argv[1]);
 
   /* Arguments are optional */
@@ -739,17 +739,17 @@ int pre_install_service(int argc, TCHAR **argv) ***REMOVED***
   int i;
   for (i = 2; i < argc; i++) flagslen += _tcslen(argv[i]) + 1;
   if (! flagslen) flagslen = 1;
-  if (flagslen > _countof(service->flags)) ***REMOVED***
+  if (flagslen > _countof(service->flags)) {
     print_message(stderr, NSSM_MESSAGE_FLAGS_TOO_LONG);
     return 2;
-  ***REMOVED***
+  }
 
-  for (i = 2; i < argc; i++) ***REMOVED***
+  for (i = 2; i < argc; i++) {
     size_t len = _tcslen(argv[i]);
     memmove(service->flags + s, argv[i], len * sizeof(TCHAR));
     s += len;
     if (i < argc - 1) service->flags[s++] = _T(' ');
-  ***REMOVED***
+  }
 
   /* Work out directory name */
   _sntprintf_s(service->dir, _countof(service->dir), _TRUNCATE, _T("%s"), service->exe);
@@ -758,15 +758,15 @@ int pre_install_service(int argc, TCHAR **argv) ***REMOVED***
   int ret = install_service(service);
   cleanup_nssm_service(service);
   return ret;
-***REMOVED***
+}
 
 /* About to edit the service. */
-int pre_edit_service(int argc, TCHAR **argv) ***REMOVED***
+int pre_edit_service(int argc, TCHAR **argv) {
   /* Require service name. */
   if (argc < 2) return usage(1);
 
   /* Are we editing on the command line? */
-  enum ***REMOVED*** MODE_EDITING, MODE_GETTING, MODE_SETTING, MODE_RESETTING ***REMOVED*** mode = MODE_EDITING;
+  enum { MODE_EDITING, MODE_GETTING, MODE_SETTING, MODE_RESETTING } mode = MODE_EDITING;
   const TCHAR *verb = argv[0];
   const TCHAR *service_name = argv[1];
   bool getting = false;
@@ -777,18 +777,18 @@ int pre_edit_service(int argc, TCHAR **argv) ***REMOVED***
   /* Index of first value. */
   int remainder = 3;
   int i;
-  if (str_equiv(verb, _T("get"))) ***REMOVED***
+  if (str_equiv(verb, _T("get"))) {
     mandatory = 3;
     mode = MODE_GETTING;
-  ***REMOVED***
-  else if (str_equiv(verb, _T("set"))) ***REMOVED***
+  }
+  else if (str_equiv(verb, _T("set"))) {
     mandatory = 4;
     mode = MODE_SETTING;
-  ***REMOVED***
-  else if (str_equiv(verb, _T("reset")) || str_equiv(verb, _T("unset"))) ***REMOVED***
+  }
+  else if (str_equiv(verb, _T("reset")) || str_equiv(verb, _T("unset"))) {
     mandatory = 3;
     mode = MODE_RESETTING;
-  ***REMOVED***
+  }
   if (argc < mandatory) return usage(1);
 
   const TCHAR *parameter = 0;
@@ -796,99 +796,99 @@ int pre_edit_service(int argc, TCHAR **argv) ***REMOVED***
   TCHAR *additional;
 
   /* Validate the parameter. */
-  if (mandatory > 2) ***REMOVED***
+  if (mandatory > 2) {
     bool additional_mandatory = false;
 
     parameter = argv[2];
-    for (i = 0; settings[i].name; i++) ***REMOVED***
+    for (i = 0; settings[i].name; i++) {
       setting = &settings[i];
       if (! str_equiv(setting->name, parameter)) continue;
-      if (((setting->additional & ADDITIONAL_GETTING) && mode == MODE_GETTING) || ((setting->additional & ADDITIONAL_SETTING) && mode == MODE_SETTING) || ((setting->additional & ADDITIONAL_RESETTING) && mode == MODE_RESETTING)) ***REMOVED***
+      if (((setting->additional & ADDITIONAL_GETTING) && mode == MODE_GETTING) || ((setting->additional & ADDITIONAL_SETTING) && mode == MODE_SETTING) || ((setting->additional & ADDITIONAL_RESETTING) && mode == MODE_RESETTING)) {
         additional_mandatory = true;
         mandatory++;
-  ***REMOVED***
+      }
       break;
-***REMOVED***
-    if (! settings[i].name) ***REMOVED***
+    }
+    if (! settings[i].name) {
       print_message(stderr, NSSM_MESSAGE_INVALID_PARAMETER, parameter);
       for (i = 0; settings[i].name; i++) _ftprintf(stderr, _T("%s\n"), settings[i].name);
       return 1;
-***REMOVED***
+    }
 
     additional = 0;
-    if (additional_mandatory) ***REMOVED***
-      if (argc < mandatory) ***REMOVED***
+    if (additional_mandatory) {
+      if (argc < mandatory) {
         print_message(stderr, NSSM_MESSAGE_MISSING_SUBPARAMETER, parameter);
         return 1;
-  ***REMOVED***
+      }
       additional = argv[3];
       remainder = 4;
-***REMOVED***
-    else if (str_equiv(setting->name, NSSM_NATIVE_OBJECTNAME) && mode == MODE_SETTING) ***REMOVED***
+    }
+    else if (str_equiv(setting->name, NSSM_NATIVE_OBJECTNAME) && mode == MODE_SETTING) {
       additional = argv[3];
       remainder = 4;
-***REMOVED***
-    else ***REMOVED***
+    }
+    else {
       additional = argv[remainder];
       if (argc < mandatory) return usage(1);
-***REMOVED***
-  ***REMOVED***
+    }
+  }
 
   nssm_service_t *service = alloc_nssm_service();
   _sntprintf_s(service->name, _countof(service->name), _TRUNCATE, _T("%s"), service_name);
 
   /* Open service manager */
   SC_HANDLE services = open_service_manager(SC_MANAGER_CONNECT | SC_MANAGER_ENUMERATE_SERVICE);
-  if (! services) ***REMOVED***
+  if (! services) {
     print_message(stderr, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
     return 2;
-  ***REMOVED***
+  }
 
   /* Try to open the service */
   unsigned long access = SERVICE_QUERY_CONFIG;
   if (mode != MODE_GETTING) access |= SERVICE_CHANGE_CONFIG;
   service->handle = open_service(services, service->name, access, service->name, _countof(service->name));
-  if (! service->handle) ***REMOVED***
+  if (! service->handle) {
     CloseServiceHandle(services);
     return 3;
-  ***REMOVED***
+  }
 
   /* Get system details. */
   QUERY_SERVICE_CONFIG *qsc = query_service_config(service->name, service->handle);
-  if (! qsc) ***REMOVED***
+  if (! qsc) {
     CloseServiceHandle(service->handle);
     CloseServiceHandle(services);
     return 4;
-  ***REMOVED***
+  }
 
   service->type = qsc->dwServiceType;
-  if (! (service->type & SERVICE_WIN32_OWN_PROCESS)) ***REMOVED***
-    if (mode != MODE_GETTING) ***REMOVED***
+  if (! (service->type & SERVICE_WIN32_OWN_PROCESS)) {
+    if (mode != MODE_GETTING) {
       HeapFree(GetProcessHeap(), 0, qsc);
       CloseServiceHandle(service->handle);
       CloseServiceHandle(services);
       print_message(stderr, NSSM_MESSAGE_CANNOT_EDIT, service->name, NSSM_WIN32_OWN_PROCESS, 0);
       return 3;
-***REMOVED***
-  ***REMOVED***
+    }
+  }
 
-  if (get_service_startup(service->name, service->handle, qsc, &service->startup)) ***REMOVED***
-    if (mode != MODE_GETTING) ***REMOVED***
+  if (get_service_startup(service->name, service->handle, qsc, &service->startup)) {
+    if (mode != MODE_GETTING) {
       HeapFree(GetProcessHeap(), 0, qsc);
       CloseServiceHandle(service->handle);
       CloseServiceHandle(services);
       return 4;
-***REMOVED***
-  ***REMOVED***
+    }
+  }
 
-  if (get_service_username(service->name, qsc, &service->username, &service->usernamelen)) ***REMOVED***
-    if (mode != MODE_GETTING) ***REMOVED***
+  if (get_service_username(service->name, qsc, &service->username, &service->usernamelen)) {
+    if (mode != MODE_GETTING) {
       HeapFree(GetProcessHeap(), 0, qsc);
       CloseServiceHandle(service->handle);
       CloseServiceHandle(services);
       return 5;
-***REMOVED***
-  ***REMOVED***
+    }
+  }
 
   _sntprintf_s(service->displayname, _countof(service->displayname), _TRUNCATE, _T("%s"), qsc->lpDisplayName);
 
@@ -901,63 +901,63 @@ int pre_edit_service(int argc, TCHAR **argv) ***REMOVED***
   HeapFree(GetProcessHeap(), 0, qsc);
 
   /* Get extended system details. */
-  if (get_service_description(service->name, service->handle, _countof(service->description), service->description)) ***REMOVED***
-    if (mode != MODE_GETTING) ***REMOVED***
+  if (get_service_description(service->name, service->handle, _countof(service->description), service->description)) {
+    if (mode != MODE_GETTING) {
       CloseServiceHandle(service->handle);
       CloseServiceHandle(services);
       return 6;
-***REMOVED***
-  ***REMOVED***
+    }
+  }
 
-  if (get_service_dependencies(service->name, service->handle, &service->dependencies, &service->dependencieslen)) ***REMOVED***
-    if (mode != MODE_GETTING) ***REMOVED***
+  if (get_service_dependencies(service->name, service->handle, &service->dependencies, &service->dependencieslen)) {
+    if (mode != MODE_GETTING) {
       CloseServiceHandle(service->handle);
       CloseServiceHandle(services);
       return 7;
-***REMOVED***
-  ***REMOVED***
+    }
+  }
 
   /* Get NSSM details. */
   get_parameters(service, 0);
 
   CloseServiceHandle(services);
 
-  if (! service->exe[0]) ***REMOVED***
+  if (! service->exe[0]) {
     service->native = true;
     if (mode != MODE_GETTING) print_message(stderr, NSSM_MESSAGE_INVALID_SERVICE, service->name, NSSM, service->image);
-  ***REMOVED***
+  }
 
   /* Editing with the GUI. */
-  if (mode == MODE_EDITING) ***REMOVED***
+  if (mode == MODE_EDITING) {
     nssm_gui(IDD_EDIT, service);
     return 0;
-  ***REMOVED***
+  }
 
   /* Trying to manage App* parameters for a non-NSSM service. */
-  if (! setting->native && service->native) ***REMOVED***
+  if (! setting->native && service->native) {
     CloseServiceHandle(service->handle);
     print_message(stderr, NSSM_MESSAGE_NATIVE_PARAMETER, setting->name, NSSM);
     return 1;
-  ***REMOVED***
+  }
 
   HKEY key;
   value_t value;
   int ret;
 
-  if (mode == MODE_GETTING) ***REMOVED***
-    if (! service->native) ***REMOVED***
+  if (mode == MODE_GETTING) {
+    if (! service->native) {
       key = open_registry(service->name, KEY_READ);
       if (! key) return 4;
-***REMOVED***
+    }
 
     if (setting->native) ret = get_setting(service->name, service->handle, setting, &value, additional);
     else ret = get_setting(service->name, key, setting, &value, additional);
-    if (ret < 0) ***REMOVED***
+    if (ret < 0) {
       CloseServiceHandle(service->handle);
       return 5;
-***REMOVED***
+    }
 
-    switch (setting->type) ***REMOVED***
+    switch (setting->type) {
       case REG_EXPAND_SZ:
       case REG_MULTI_SZ:
       case REG_SZ:
@@ -968,22 +968,22 @@ int pre_edit_service(int argc, TCHAR **argv) ***REMOVED***
       case REG_DWORD:
         _tprintf(_T("%u\n"), value.numeric);
         break;
-***REMOVED***
+    }
 
     if (! service->native) RegCloseKey(key);
     CloseServiceHandle(service->handle);
     return 0;
-  ***REMOVED***
+  }
 
   /* Build the value. */
-  if (mode == MODE_RESETTING) ***REMOVED***
+  if (mode == MODE_RESETTING) {
     /* Unset the parameter. */
     value.string = 0;
-  ***REMOVED***
-  else if (remainder == argc) ***REMOVED***
+  }
+  else if (remainder == argc) {
     value.string = 0;
-  ***REMOVED***
-  else ***REMOVED***
+  }
+  else {
     /* Set the parameter. */
     size_t len = 0;
     size_t delimiterlen = (setting->additional & ADDITIONAL_CRLF) ? 2 : 1;
@@ -991,96 +991,96 @@ int pre_edit_service(int argc, TCHAR **argv) ***REMOVED***
     len++;
 
     value.string = (TCHAR *) HeapAlloc(GetProcessHeap(), 0, len * sizeof(TCHAR));
-    if (! value.string) ***REMOVED***
+    if (! value.string) {
       print_message(stderr, NSSM_MESSAGE_OUT_OF_MEMORY, _T("value"), _T("edit_service()"));
       CloseServiceHandle(service->handle);
       return 2;
-***REMOVED***
+    }
 
     size_t s = 0;
-    for (i = remainder; i < argc; i++) ***REMOVED***
+    for (i = remainder; i < argc; i++) {
       size_t len = _tcslen(argv[i]);
       memmove(value.string + s, argv[i], len * sizeof(TCHAR));
       s += len;
-      if (i < argc - 1) ***REMOVED***
-        if (setting->additional & ADDITIONAL_CRLF) ***REMOVED***
+      if (i < argc - 1) {
+        if (setting->additional & ADDITIONAL_CRLF) {
           value.string[s++] = _T('\r');
           value.string[s++] = _T('\n');
-    ***REMOVED***
+        }
         else value.string[s++] = _T(' ');
-  ***REMOVED***
-***REMOVED***
+      }
+    }
     value.string[s] = _T('\0');
-  ***REMOVED***
+  }
 
-  if (! service->native) ***REMOVED***
+  if (! service->native) {
     key = open_registry(service->name, KEY_WRITE);
-    if (! key) ***REMOVED***
+    if (! key) {
       if (value.string) HeapFree(GetProcessHeap(), 0, value.string);
       return 4;
-***REMOVED***
-  ***REMOVED***
+    }
+  }
 
   if (setting->native) ret = set_setting(service->name, service->handle, setting, &value, additional);
   else ret = set_setting(service->name, key, setting, &value, additional);
   if (value.string) HeapFree(GetProcessHeap(), 0, value.string);
-  if (ret < 0) ***REMOVED***
+  if (ret < 0) {
     if (! service->native) RegCloseKey(key);
     CloseServiceHandle(service->handle);
     return 6;
-  ***REMOVED***
+  }
 
   if (! service->native) RegCloseKey(key);
   CloseServiceHandle(service->handle);
 
   return 0;
-***REMOVED***
+}
 
 /* About to remove the service */
-int pre_remove_service(int argc, TCHAR **argv) ***REMOVED***
+int pre_remove_service(int argc, TCHAR **argv) {
   nssm_service_t *service = alloc_nssm_service();
   set_nssm_service_defaults(service);
   if (argc) _sntprintf_s(service->name, _countof(service->name), _TRUNCATE, _T("%s"), argv[0]);
 
   /* Show dialogue box if we didn't pass service name and "confirm" */
   if (argc < 2) return nssm_gui(IDD_REMOVE, service);
-  if (str_equiv(argv[1], _T("confirm"))) ***REMOVED***
+  if (str_equiv(argv[1], _T("confirm"))) {
     int ret = remove_service(service);
     cleanup_nssm_service(service);
     return ret;
-  ***REMOVED***
+  }
   print_message(stderr, NSSM_MESSAGE_PRE_REMOVE_SERVICE);
   return 100;
-***REMOVED***
+}
 
 /* Install the service */
-int install_service(nssm_service_t *service) ***REMOVED***
+int install_service(nssm_service_t *service) {
   if (! service) return 1;
 
   /* Open service manager */
   SC_HANDLE services = open_service_manager(SC_MANAGER_CONNECT | SC_MANAGER_CREATE_SERVICE);
-  if (! services) ***REMOVED***
+  if (! services) {
     print_message(stderr, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
     cleanup_nssm_service(service);
     return 2;
-  ***REMOVED***
+  }
 
   /* Get path of this program */
   GetModuleFileName(0, service->image, _countof(service->image));
 
   /* Create the service - settings will be changed in edit_service() */
   service->handle = CreateService(services, service->name, service->name, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_AUTO_START, SERVICE_ERROR_NORMAL, service->image, 0, 0, 0, 0, 0);
-  if (! service->handle) ***REMOVED***
+  if (! service->handle) {
     print_message(stderr, NSSM_MESSAGE_CREATESERVICE_FAILED, error_string(GetLastError()));
     CloseServiceHandle(services);
     return 5;
-  ***REMOVED***
+  }
 
-  if (edit_service(service, false)) ***REMOVED***
+  if (edit_service(service, false)) {
     DeleteService(service->handle);
     CloseServiceHandle(services);
     return 6;
-  ***REMOVED***
+  }
 
   print_message(stdout, NSSM_MESSAGE_SERVICE_INSTALLED, service->name);
 
@@ -1088,10 +1088,10 @@ int install_service(nssm_service_t *service) ***REMOVED***
   CloseServiceHandle(services);
 
   return 0;
-***REMOVED***
+}
 
 /* Edit the service. */
-int edit_service(nssm_service_t *service, bool editing) ***REMOVED***
+int edit_service(nssm_service_t *service, bool editing) {
   if (! service) return 1;
 
   /*
@@ -1103,11 +1103,11 @@ int edit_service(nssm_service_t *service, bool editing) ***REMOVED***
 
   /* Startup type. */
   unsigned long startup;
-  switch (service->startup) ***REMOVED***
+  switch (service->startup) {
     case NSSM_STARTUP_MANUAL: startup = SERVICE_DEMAND_START; break;
     case NSSM_STARTUP_DISABLED: startup = SERVICE_DISABLED; break;
     default: startup = SERVICE_AUTO_START;
-  ***REMOVED***
+  }
 
   /* Display name. */
   if (! service->displayname[0]) _sntprintf_s(service->displayname, _countof(service->displayname), _TRUNCATE, _T("%s"), service->name);
@@ -1121,81 +1121,81 @@ int edit_service(nssm_service_t *service, bool editing) ***REMOVED***
   TCHAR *username = 0;
   TCHAR *canon = 0;
   TCHAR *password = 0;
-  if (service->usernamelen) ***REMOVED***
+  if (service->usernamelen) {
     username = service->username;
     if (canonicalise_username(username, &canon)) return 5;
     if (service->passwordlen) password = service->password;
-  ***REMOVED***
+  }
   else if (editing) username = canon = NSSM_LOCALSYSTEM_ACCOUNT;
 
   if (well_known_username(canon)) password = _T("");
-  else ***REMOVED***
-    if (grant_logon_as_service(canon)) ***REMOVED***
+  else {
+    if (grant_logon_as_service(canon)) {
       if (canon != username) HeapFree(GetProcessHeap(), 0, canon);
       print_message(stderr, NSSM_MESSAGE_GRANT_LOGON_AS_SERVICE_FAILED, username);
       return 5;
-***REMOVED***
-  ***REMOVED***
+    }
+  }
 
   TCHAR *dependencies = _T("");
   if (service->dependencieslen) dependencies = 0; /* Change later. */
 
-  if (! ChangeServiceConfig(service->handle, service->type, startup, SERVICE_NO_CHANGE, 0, 0, 0, dependencies, canon, password, service->displayname)) ***REMOVED***
+  if (! ChangeServiceConfig(service->handle, service->type, startup, SERVICE_NO_CHANGE, 0, 0, 0, dependencies, canon, password, service->displayname)) {
     if (canon != username) HeapFree(GetProcessHeap(), 0, canon);
     print_message(stderr, NSSM_MESSAGE_CHANGESERVICECONFIG_FAILED, error_string(GetLastError()));
     return 5;
-  ***REMOVED***
+  }
   if (canon != username) HeapFree(GetProcessHeap(), 0, canon);
 
-  if (service->dependencieslen) ***REMOVED***
+  if (service->dependencieslen) {
     if (set_service_dependencies(service->name, service->handle, service->dependencies)) return 5;
-  ***REMOVED***
+  }
 
-  if (service->description[0] || editing) ***REMOVED***
+  if (service->description[0] || editing) {
     set_service_description(service->name, service->handle, service->description);
-  ***REMOVED***
+  }
 
   SERVICE_DELAYED_AUTO_START_INFO delayed;
   ZeroMemory(&delayed, sizeof(delayed));
   if (service->startup == NSSM_STARTUP_DELAYED) delayed.fDelayedAutostart = 1;
   else delayed.fDelayedAutostart = 0;
   /* Delayed startup isn't supported until Vista. */
-  if (! ChangeServiceConfig2(service->handle, SERVICE_CONFIG_DELAYED_AUTO_START_INFO, &delayed)) ***REMOVED***
+  if (! ChangeServiceConfig2(service->handle, SERVICE_CONFIG_DELAYED_AUTO_START_INFO, &delayed)) {
     unsigned long error = GetLastError();
     /* Pre-Vista we expect to fail with ERROR_INVALID_LEVEL */
-    if (error != ERROR_INVALID_LEVEL) ***REMOVED***
+    if (error != ERROR_INVALID_LEVEL) {
       log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_SERVICE_CONFIG_DELAYED_AUTO_START_INFO_FAILED, service->name, error_string(error), 0);
-***REMOVED***
-  ***REMOVED***
+    }
+  }
 
   /* Don't mess with parameters which aren't ours. */
-  if (! service->native) ***REMOVED***
+  if (! service->native) {
     /* Now we need to put the parameters into the registry */
-    if (create_parameters(service, editing)) ***REMOVED***
+    if (create_parameters(service, editing)) {
       print_message(stderr, NSSM_MESSAGE_CREATE_PARAMETERS_FAILED);
       return 6;
-***REMOVED***
+    }
 
     set_service_recovery(service);
-  ***REMOVED***
+  }
 
   return 0;
-***REMOVED***
+}
 
 /* Control a service. */
-int control_service(unsigned long control, int argc, TCHAR **argv) ***REMOVED***
+int control_service(unsigned long control, int argc, TCHAR **argv) {
   if (argc < 1) return usage(1);
   TCHAR *service_name = argv[0];
   TCHAR canonical_name[SERVICE_NAME_LENGTH];
 
   SC_HANDLE services = open_service_manager(SC_MANAGER_CONNECT | SC_MANAGER_ENUMERATE_SERVICE);
-  if (! services) ***REMOVED***
+  if (! services) {
     print_message(stderr, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
     return 2;
-  ***REMOVED***
+  }
 
   unsigned long access = SERVICE_QUERY_STATUS;
-  switch (control) ***REMOVED***
+  switch (control) {
     case NSSM_SERVICE_CONTROL_START:
       access |= SERVICE_START;
     break;
@@ -1212,24 +1212,24 @@ int control_service(unsigned long control, int argc, TCHAR **argv) ***REMOVED***
     case NSSM_SERVICE_CONTROL_ROTATE:
       access |= SERVICE_USER_DEFINED_CONTROL;
       break;
-  ***REMOVED***
+  }
 
   SC_HANDLE service_handle = open_service(services, service_name, access, canonical_name, _countof(canonical_name));
-  if (! service_handle) ***REMOVED***
+  if (! service_handle) {
     CloseServiceHandle(services);
     return 3;
-  ***REMOVED***
+  }
 
   int ret;
   unsigned long error;
   SERVICE_STATUS service_status;
-  if (control == NSSM_SERVICE_CONTROL_START) ***REMOVED***
+  if (control == NSSM_SERVICE_CONTROL_START) {
     unsigned long initial_status = SERVICE_STOPPED;
     ret = StartService(service_handle, (unsigned long) argc, (const TCHAR **) argv);
     error = GetLastError();
     CloseServiceHandle(services);
 
-    if (error == ERROR_IO_PENDING) ***REMOVED***
+    if (error == ERROR_IO_PENDING) {
       /*
         Older versions of Windows return immediately with ERROR_IO_PENDING
         indicate that the operation is still in progress.  Newer versions
@@ -1237,26 +1237,26 @@ int control_service(unsigned long control, int argc, TCHAR **argv) ***REMOVED***
       */
       ret = 1;
       error = ERROR_SUCCESS;
-***REMOVED***
+    }
 
-    if (ret) ***REMOVED***
+    if (ret) {
       int response = await_service_control_response(control, service_handle, &service_status, initial_status);
       CloseServiceHandle(service_handle);
 
-      if (response) ***REMOVED***
+      if (response) {
         print_message(stderr, NSSM_MESSAGE_BAD_CONTROL_RESPONSE, canonical_name, service_status_text(service_status.dwCurrentState), service_control_text(control));
         return 1;
-  ***REMOVED***
+      }
       else _tprintf(_T("%s: %s: %s"), canonical_name, service_control_text(control), error_string(error));
       return 0;
-***REMOVED***
-    else ***REMOVED***
+    }
+    else {
       CloseServiceHandle(service_handle);
       _ftprintf(stderr, _T("%s: %s: %s"), canonical_name, service_control_text(control), error_string(error));
       return 1;
-***REMOVED***
-  ***REMOVED***
-  else if (control == SERVICE_CONTROL_INTERROGATE) ***REMOVED***
+    }
+  }
+  else if (control == SERVICE_CONTROL_INTERROGATE) {
     /*
       We could actually send an INTERROGATE control but that won't return
       any information if the service is stopped and we don't care about
@@ -1265,65 +1265,65 @@ int control_service(unsigned long control, int argc, TCHAR **argv) ***REMOVED***
     ret = QueryServiceStatus(service_handle, &service_status);
     error = GetLastError();
 
-    if (ret) ***REMOVED***
+    if (ret) {
       _tprintf(_T("%s\n"), service_status_text(service_status.dwCurrentState));
       return 0;
-***REMOVED***
-    else ***REMOVED***
+    }
+    else {
       _ftprintf(stderr, _T("%s: %s\n"), canonical_name, error_string(error));
       return 1;
-***REMOVED***
-  ***REMOVED***
-  else ***REMOVED***
+    }
+  }
+  else {
     ret = ControlService(service_handle, control, &service_status);
     unsigned long initial_status = service_status.dwCurrentState;
     error = GetLastError();
     CloseServiceHandle(services);
 
-    if (error == ERROR_IO_PENDING) ***REMOVED***
+    if (error == ERROR_IO_PENDING) {
       ret = 1;
       error = ERROR_SUCCESS;
-***REMOVED***
+    }
 
-    if (ret) ***REMOVED***
+    if (ret) {
       int response = await_service_control_response(control, service_handle, &service_status, initial_status);
       CloseServiceHandle(service_handle);
 
-      if (response) ***REMOVED***
+      if (response) {
         print_message(stderr, NSSM_MESSAGE_BAD_CONTROL_RESPONSE, canonical_name, service_status_text(service_status.dwCurrentState), service_control_text(control));
         return 1;
-  ***REMOVED***
+      }
       else _tprintf(_T("%s: %s: %s"), canonical_name, service_control_text(control), error_string(error));
       return 0;
-***REMOVED***
-    else ***REMOVED***
+    }
+    else {
       CloseServiceHandle(service_handle);
       _ftprintf(stderr, _T("%s: %s: %s"), canonical_name, service_control_text(control), error_string(error));
-      if (error == ERROR_SERVICE_NOT_ACTIVE) ***REMOVED***
+      if (error == ERROR_SERVICE_NOT_ACTIVE) {
         if (control == SERVICE_CONTROL_SHUTDOWN || control == SERVICE_CONTROL_STOP) return 0;
-  ***REMOVED***
+      }
       return 1;
-***REMOVED***
-  ***REMOVED***
-***REMOVED***
+    }
+  }
+}
 
 /* Remove the service */
-int remove_service(nssm_service_t *service) ***REMOVED***
+int remove_service(nssm_service_t *service) {
   if (! service) return 1;
 
   /* Open service manager */
   SC_HANDLE services = open_service_manager(SC_MANAGER_CONNECT | SC_MANAGER_ENUMERATE_SERVICE);
-  if (! services) ***REMOVED***
+  if (! services) {
     print_message(stderr, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
     return 2;
-  ***REMOVED***
+  }
 
   /* Try to open the service */
   service->handle = open_service(services, service->name, DELETE, service->name, _countof(service->name));
-  if (! service->handle) ***REMOVED***
+  if (! service->handle) {
     CloseServiceHandle(services);
     return 3;
-  ***REMOVED***
+  }
 
   /* Get the canonical service name. We open it case insensitively. */
   unsigned long bufsize = _countof(service->displayname);
@@ -1332,28 +1332,28 @@ int remove_service(nssm_service_t *service) ***REMOVED***
   GetServiceKeyName(services, service->displayname, service->name, &bufsize);
 
   /* Try to delete the service */
-  if (! DeleteService(service->handle)) ***REMOVED***
+  if (! DeleteService(service->handle)) {
     print_message(stderr, NSSM_MESSAGE_DELETESERVICE_FAILED);
     CloseServiceHandle(services);
     return 4;
-  ***REMOVED***
+  }
 
   /* Cleanup */
   CloseServiceHandle(services);
 
   print_message(stdout, NSSM_MESSAGE_SERVICE_REMOVED, service->name);
   return 0;
-***REMOVED***
+}
 
 /* Service initialisation */
-void WINAPI service_main(unsigned long argc, TCHAR **argv) ***REMOVED***
+void WINAPI service_main(unsigned long argc, TCHAR **argv) {
   nssm_service_t *service = alloc_nssm_service();
   if (! service) return;
 
-  if (_sntprintf_s(service->name, _countof(service->name), _TRUNCATE, _T("%s"), argv[0]) < 0) ***REMOVED***
+  if (_sntprintf_s(service->name, _countof(service->name), _TRUNCATE, _T("%s"), argv[0]) < 0) {
     log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_OUT_OF_MEMORY, _T("service->name"), _T("service_main()"), 0);
     return;
-  ***REMOVED***
+  }
 
   /* We can use a condition variable in a critical section on Vista or later. */
   if (imports.SleepConditionVariableCS && imports.WakeConditionVariable) use_critical_section = true;
@@ -1374,10 +1374,10 @@ void WINAPI service_main(unsigned long argc, TCHAR **argv) ***REMOVED***
 
   /* Register control handler */
   service->status_handle = RegisterServiceCtrlHandlerEx(NSSM, service_control_handler, (void *) service);
-  if (! service->status_handle) ***REMOVED***
+  if (! service->status_handle) {
     log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_REGISTERSERVICECTRLHANDER_FAILED, error_string(GetLastError()), 0);
     return;
-  ***REMOVED***
+  }
 
   log_service_control(service->name, 0, true);
 
@@ -1385,73 +1385,73 @@ void WINAPI service_main(unsigned long argc, TCHAR **argv) ***REMOVED***
   service->status.dwWaitHint = service->throttle_delay + NSSM_WAITHINT_MARGIN;
   SetServiceStatus(service->status_handle, &service->status);
 
-  if (is_admin) ***REMOVED***
+  if (is_admin) {
     /* Try to create the exit action parameters; we don't care if it fails */
     create_exit_action(service->name, exit_action_strings[0], false);
 
     SC_HANDLE services = open_service_manager(SC_MANAGER_CONNECT);
-    if (services) ***REMOVED***
+    if (services) {
       service->handle = open_service(services, service->name, SERVICE_CHANGE_CONFIG, 0, 0);
       set_service_recovery(service);
       CloseServiceHandle(services);
-***REMOVED***
-  ***REMOVED***
+    }
+  }
 
   /* Used for signalling a resume if the service pauses when throttled. */
-  if (use_critical_section) ***REMOVED***
+  if (use_critical_section) {
     InitializeCriticalSection(&service->throttle_section);
     service->throttle_section_initialised = true;
-  ***REMOVED***
-  else ***REMOVED***
+  }
+  else {
     service->throttle_timer = CreateWaitableTimer(0, 1, 0);
-    if (! service->throttle_timer) ***REMOVED***
+    if (! service->throttle_timer) {
       log_event(EVENTLOG_WARNING_TYPE, NSSM_EVENT_CREATEWAITABLETIMER_FAILED, service->name, error_string(GetLastError()), 0);
-***REMOVED***
-  ***REMOVED***
+    }
+  }
 
   /* Remember our initial environment. */
   service->initial_env = GetEnvironmentStrings();
 
   monitor_service(service);
-***REMOVED***
+}
 
 /* Make sure service recovery actions are taken where necessary */
-void set_service_recovery(nssm_service_t *service) ***REMOVED***
+void set_service_recovery(nssm_service_t *service) {
   SERVICE_FAILURE_ACTIONS_FLAG flag;
   ZeroMemory(&flag, sizeof(flag));
   flag.fFailureActionsOnNonCrashFailures = true;
 
   /* This functionality was added in Vista so the call may fail */
-  if (! ChangeServiceConfig2(service->handle, SERVICE_CONFIG_FAILURE_ACTIONS_FLAG, &flag)) ***REMOVED***
+  if (! ChangeServiceConfig2(service->handle, SERVICE_CONFIG_FAILURE_ACTIONS_FLAG, &flag)) {
     unsigned long error = GetLastError();
     /* Pre-Vista we expect to fail with ERROR_INVALID_LEVEL */
-    if (error != ERROR_INVALID_LEVEL) ***REMOVED***
+    if (error != ERROR_INVALID_LEVEL) {
       log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_SERVICE_CONFIG_FAILURE_ACTIONS_FAILED, service->name, error_string(error), 0);
-***REMOVED***
-  ***REMOVED***
-***REMOVED***
+    }
+  }
+}
 
-int monitor_service(nssm_service_t *service) ***REMOVED***
+int monitor_service(nssm_service_t *service) {
   /* Set service status to started */
   int ret = start_service(service);
-  if (ret) ***REMOVED***
+  if (ret) {
     TCHAR code[16];
     _sntprintf_s(code, _countof(code), _TRUNCATE, _T("%d"), ret);
     log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_START_SERVICE_FAILED, service->exe, service->name, ret, 0);
     return ret;
-  ***REMOVED***
+  }
   log_event(EVENTLOG_INFORMATION_TYPE, NSSM_EVENT_STARTED_SERVICE, service->exe, service->flags, service->name, service->dir, 0);
 
   /* Monitor service */
-  if (! RegisterWaitForSingleObject(&service->wait_handle, service->process_handle, end_service, (void *) service, INFINITE, WT_EXECUTEONLYONCE | WT_EXECUTELONGFUNCTION)) ***REMOVED***
+  if (! RegisterWaitForSingleObject(&service->wait_handle, service->process_handle, end_service, (void *) service, INFINITE, WT_EXECUTEONLYONCE | WT_EXECUTELONGFUNCTION)) {
     log_event(EVENTLOG_WARNING_TYPE, NSSM_EVENT_REGISTERWAITFORSINGLEOBJECT_FAILED, service->name, service->exe, error_string(GetLastError()), 0);
-  ***REMOVED***
+  }
 
   return 0;
-***REMOVED***
+}
 
-TCHAR *service_control_text(unsigned long control) ***REMOVED***
-  switch (control) ***REMOVED***
+TCHAR *service_control_text(unsigned long control) {
+  switch (control) {
     /* HACK: there is no SERVICE_CONTROL_START constant */
     case NSSM_SERVICE_CONTROL_START: return _T("START");
     case SERVICE_CONTROL_STOP: return _T("STOP");
@@ -1461,11 +1461,11 @@ TCHAR *service_control_text(unsigned long control) ***REMOVED***
     case SERVICE_CONTROL_INTERROGATE: return _T("INTERROGATE");
     case NSSM_SERVICE_CONTROL_ROTATE: return _T("ROTATE");
     default: return 0;
-  ***REMOVED***
-***REMOVED***
+  }
+}
 
-TCHAR *service_status_text(unsigned long status) ***REMOVED***
-  switch (status) ***REMOVED***
+TCHAR *service_status_text(unsigned long status) {
+  switch (status) {
     case SERVICE_STOPPED: return _T("SERVICE_STOPPED");
     case SERVICE_START_PENDING: return _T("SERVICE_START_PENDING");
     case SERVICE_STOP_PENDING: return _T("SERVICE_STOP_PENDING");
@@ -1474,43 +1474,43 @@ TCHAR *service_status_text(unsigned long status) ***REMOVED***
     case SERVICE_PAUSE_PENDING: return _T("SERVICE_PAUSE_PENDING");
     case SERVICE_PAUSED: return _T("SERVICE_PAUSED");
     default: return 0;
-  ***REMOVED***
-***REMOVED***
+  }
+}
 
-void log_service_control(TCHAR *service_name, unsigned long control, bool handled) ***REMOVED***
+void log_service_control(TCHAR *service_name, unsigned long control, bool handled) {
   TCHAR *text = service_control_text(control);
   unsigned long event;
 
-  if (! text) ***REMOVED***
+  if (! text) {
     /* "0x" + 8 x hex + NULL */
     text = (TCHAR *) HeapAlloc(GetProcessHeap(), 0, 11 * sizeof(TCHAR));
-    if (! text) ***REMOVED***
+    if (! text) {
       log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_OUT_OF_MEMORY, _T("control code"), _T("log_service_control()"), 0);
       return;
-***REMOVED***
-    if (_sntprintf_s(text, 11, _TRUNCATE, _T("0x%08x"), control) < 0) ***REMOVED***
+    }
+    if (_sntprintf_s(text, 11, _TRUNCATE, _T("0x%08x"), control) < 0) {
       log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_OUT_OF_MEMORY, _T("control code"), _T("log_service_control()"), 0);
       HeapFree(GetProcessHeap(), 0, text);
       return;
-***REMOVED***
+    }
 
     event = NSSM_EVENT_SERVICE_CONTROL_UNKNOWN;
-  ***REMOVED***
+  }
   else if (handled) event = NSSM_EVENT_SERVICE_CONTROL_HANDLED;
   else event = NSSM_EVENT_SERVICE_CONTROL_NOT_HANDLED;
 
   log_event(EVENTLOG_INFORMATION_TYPE, event, service_name, text, 0);
 
-  if (event == NSSM_EVENT_SERVICE_CONTROL_UNKNOWN) ***REMOVED***
+  if (event == NSSM_EVENT_SERVICE_CONTROL_UNKNOWN) {
     HeapFree(GetProcessHeap(), 0, text);
-  ***REMOVED***
-***REMOVED***
+  }
+}
 
 /* Service control handler */
-unsigned long WINAPI service_control_handler(unsigned long control, unsigned long event, void *data, void *context) ***REMOVED***
+unsigned long WINAPI service_control_handler(unsigned long control, unsigned long event, void *data, void *context) {
   nssm_service_t *service = (nssm_service_t *) context;
 
-  switch (control) ***REMOVED***
+  switch (control) {
     case SERVICE_CONTROL_INTERROGATE:
       /* We always keep the service status up-to-date so this is a no-op. */
       return NO_ERROR;
@@ -1523,7 +1523,7 @@ unsigned long WINAPI service_control_handler(unsigned long control, unsigned lon
         waiting for the application to exit.  Spawn a new thread to wait
         while we acknowledge the request.
       */
-      if (! CreateThread(NULL, 0, shutdown_service, context, 0, NULL)) ***REMOVED***
+      if (! CreateThread(NULL, 0, shutdown_service, context, 0, NULL)) {
         log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_CREATETHREAD_FAILED, error_string(GetLastError()), 0);
 
         /*
@@ -1535,18 +1535,18 @@ unsigned long WINAPI service_control_handler(unsigned long control, unsigned lon
         service->kill_threads_delay = NSSM_KILL_THREADS_GRACE_PERIOD;
 
         stop_service(service, 0, true, true);
-  ***REMOVED***
+      }
       return NO_ERROR;
 
     case SERVICE_CONTROL_CONTINUE:
       log_service_control(service->name, control, true);
       service->throttle = 0;
       if (use_critical_section) imports.WakeConditionVariable(&service->throttle_condition);
-      else ***REMOVED***
+      else {
         if (! service->throttle_timer) return ERROR_CALL_NOT_IMPLEMENTED;
         ZeroMemory(&service->throttle_duetime, sizeof(service->throttle_duetime));
         SetWaitableTimer(service->throttle_timer, &service->throttle_duetime, 0, 0, 0, 0);
-  ***REMOVED***
+      }
       /* We can't continue if the application is running! */
       if (! service->process_handle) service->status.dwCurrentState = SERVICE_CONTINUE_PENDING;
       service->status.dwWaitHint = throttle_milliseconds(service->throttle) + NSSM_WAITHINT_MARGIN;
@@ -1567,15 +1567,15 @@ unsigned long WINAPI service_control_handler(unsigned long control, unsigned lon
       if (service->rotate_stdout_online == NSSM_ROTATE_ONLINE) service->rotate_stdout_online = NSSM_ROTATE_ONLINE_ASAP;
       if (service->rotate_stderr_online == NSSM_ROTATE_ONLINE) service->rotate_stderr_online = NSSM_ROTATE_ONLINE_ASAP;
       return NO_ERROR;
-  ***REMOVED***
+  }
 
   /* Unknown control */
   log_service_control(service->name, control, false);
   return ERROR_CALL_NOT_IMPLEMENTED;
-***REMOVED***
+}
 
 /* Start the service */
-int start_service(nssm_service_t *service) ***REMOVED***
+int start_service(nssm_service_t *service) {
   service->stopping = false;
   service->allow_restart = true;
 
@@ -1592,17 +1592,17 @@ int start_service(nssm_service_t *service) ***REMOVED***
 
   /* Get startup parameters */
   int ret = get_parameters(service, &si);
-  if (ret) ***REMOVED***
+  if (ret) {
     log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_GET_PARAMETERS_FAILED, service->name, 0);
     return stop_service(service, 2, true, true);
-  ***REMOVED***
+  }
 
   /* Launch executable with arguments */
   TCHAR cmd[CMD_LENGTH];
-  if (_sntprintf_s(cmd, _countof(cmd), _TRUNCATE, _T("\"%s\" %s"), service->exe, service->flags) < 0) ***REMOVED***
+  if (_sntprintf_s(cmd, _countof(cmd), _TRUNCATE, _T("\"%s\" %s"), service->exe, service->flags) < 0) {
     log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_OUT_OF_MEMORY, _T("command line"), _T("start_service"), 0);
     return stop_service(service, 2, true, true);
-  ***REMOVED***
+  }
 
   throttle_restart(service);
 
@@ -1611,25 +1611,25 @@ int start_service(nssm_service_t *service) ***REMOVED***
   if (service->env_extra) set_environment_block(service->env_extra);
 
   /* Set up I/O redirection. */
-  if (get_output_handles(service, &si)) ***REMOVED***
+  if (get_output_handles(service, &si)) {
     log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_GET_OUTPUT_HANDLES_FAILED, service->name, 0);
     if (! service->no_console) FreeConsole();
     close_output_handles(&si);
     return stop_service(service, 4, true, true);
-  ***REMOVED***
+  }
 
   bool inherit_handles = false;
   if (si.dwFlags & STARTF_USESTDHANDLES) inherit_handles = true;
   unsigned long flags = service->priority & priority_mask();
   if (service->affinity) flags |= CREATE_SUSPENDED;
-  if (! CreateProcess(0, cmd, 0, 0, inherit_handles, flags, 0, service->dir, &si, &pi)) ***REMOVED***
+  if (! CreateProcess(0, cmd, 0, 0, inherit_handles, flags, 0, service->dir, &si, &pi)) {
     unsigned long exitcode = 3;
     unsigned long error = GetLastError();
     log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_CREATEPROCESS_FAILED, service->name, service->exe, error_string(error), 0);
     close_output_handles(&si);
     duplicate_environment_strings(service->initial_env);
     return stop_service(service, exitcode, true, true);
-  ***REMOVED***
+  }
   service->process_handle = pi.hProcess;
   service->pid = pi.dwProcessId;
 
@@ -1642,7 +1642,7 @@ int start_service(nssm_service_t *service) ***REMOVED***
   /* Restore our environment. */
   duplicate_environment_strings(service->initial_env);
 
-  if (service->affinity) ***REMOVED***
+  if (service->affinity) {
     /*
       We are explicitly storing service->affinity as a 64-bit unsigned integer
       so that we can parse it regardless of whether we're running in 32-bit
@@ -1659,17 +1659,17 @@ int start_service(nssm_service_t *service) ***REMOVED***
     DWORD_PTR affinity, system_affinity;
 
     if (GetProcessAffinityMask(service->process_handle, &affinity, &system_affinity)) affinity = service->affinity & system_affinity;
-    else ***REMOVED***
+    else {
       affinity = (DWORD_PTR) service->affinity;
       log_event(EVENTLOG_ERROR_TYPE, NSSM_EVENT_GETPROCESSAFFINITYMASK_FAILED, service->name, error_string(GetLastError()), 0);
-***REMOVED***
+    }
 
-    if (! SetProcessAffinityMask(service->process_handle, affinity)) ***REMOVED***
+    if (! SetProcessAffinityMask(service->process_handle, affinity)) {
       log_event(EVENTLOG_WARNING_TYPE, NSSM_EVENT_SETPROCESSAFFINITYMASK_FAILED, service->name, error_string(GetLastError()), 0);
-***REMOVED***
+    }
 
     ResumeThread(pi.hThread);
-  ***REMOVED***
+  }
 
   /*
     Wait for a clean startup before changing the service status to RUNNING
@@ -1677,14 +1677,14 @@ int start_service(nssm_service_t *service) ***REMOVED***
     so abandon the wait before too much time has elapsed.
   */
   unsigned long delay = service->throttle_delay;
-  if (delay > NSSM_SERVICE_STATUS_DEADLINE) ***REMOVED***
+  if (delay > NSSM_SERVICE_STATUS_DEADLINE) {
     TCHAR delay_milliseconds[16];
     _sntprintf_s(delay_milliseconds, _countof(delay_milliseconds), _TRUNCATE, _T("%lu"), delay);
     TCHAR deadline_milliseconds[16];
     _sntprintf_s(deadline_milliseconds, _countof(deadline_milliseconds), _TRUNCATE, _T("%lu"), NSSM_SERVICE_STATUS_DEADLINE);
     log_event(EVENTLOG_WARNING_TYPE, NSSM_EVENT_STARTUP_DELAY_TOO_LONG, service->name, delay_milliseconds, NSSM, deadline_milliseconds, 0);
     delay = NSSM_SERVICE_STATUS_DEADLINE;
-  ***REMOVED***
+  }
   unsigned long deadline = WaitForSingleObject(service->process_handle, delay);
 
   /* Signal successful start */
@@ -1692,70 +1692,70 @@ int start_service(nssm_service_t *service) ***REMOVED***
   SetServiceStatus(service->status_handle, &service->status);
 
   /* Continue waiting for a clean startup. */
-  if (deadline == WAIT_TIMEOUT) ***REMOVED***
-    if (service->throttle_delay > delay) ***REMOVED***
+  if (deadline == WAIT_TIMEOUT) {
+    if (service->throttle_delay > delay) {
       if (WaitForSingleObject(service->process_handle, service->throttle_delay - delay) == WAIT_TIMEOUT) service->throttle = 0;
-***REMOVED***
+    }
     else service->throttle = 0;
-  ***REMOVED***
+  }
 
   /* Ensure the restart delay is always applied. */
   if (service->restart_delay && ! service->throttle) service->throttle++;
 
   return 0;
-***REMOVED***
+}
 
 /* Stop the service */
-int stop_service(nssm_service_t *service, unsigned long exitcode, bool graceful, bool default_action) ***REMOVED***
+int stop_service(nssm_service_t *service, unsigned long exitcode, bool graceful, bool default_action) {
   service->allow_restart = false;
-  if (service->wait_handle) ***REMOVED***
+  if (service->wait_handle) {
     UnregisterWait(service->wait_handle);
     service->wait_handle = 0;
-  ***REMOVED***
+  }
 
   service->rotate_stdout_online = service->rotate_stderr_online = NSSM_ROTATE_OFFLINE;
 
-  if (default_action && ! exitcode && ! graceful) ***REMOVED***
+  if (default_action && ! exitcode && ! graceful) {
     log_event(EVENTLOG_INFORMATION_TYPE, NSSM_EVENT_GRACEFUL_SUICIDE, service->name, service->exe, exit_action_strings[NSSM_EXIT_UNCLEAN], exit_action_strings[NSSM_EXIT_UNCLEAN], exit_action_strings[NSSM_EXIT_UNCLEAN], exit_action_strings[NSSM_EXIT_REALLY], 0);
     graceful = true;
-  ***REMOVED***
+  }
 
   /* Signal we are stopping */
-  if (graceful) ***REMOVED***
+  if (graceful) {
     service->status.dwCurrentState = SERVICE_STOP_PENDING;
     service->status.dwWaitHint = NSSM_WAITHINT_MARGIN;
     SetServiceStatus(service->status_handle, &service->status);
-  ***REMOVED***
+  }
 
   /* Nothing to do if service isn't running */
-  if (service->pid) ***REMOVED***
+  if (service->pid) {
     /* Shut down service */
     log_event(EVENTLOG_INFORMATION_TYPE, NSSM_EVENT_TERMINATEPROCESS, service->name, service->exe, 0);
     kill_process(service, service->process_handle, service->pid, 0);
-  ***REMOVED***
+  }
   else log_event(EVENTLOG_INFORMATION_TYPE, NSSM_EVENT_PROCESS_ALREADY_STOPPED, service->name, service->exe, 0);
 
   end_service((void *) service, true);
 
   /* Signal we stopped */
-  if (graceful) ***REMOVED***
+  if (graceful) {
     service->status.dwCurrentState = SERVICE_STOPPED;
-    if (exitcode) ***REMOVED***
+    if (exitcode) {
       service->status.dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
       service->status.dwServiceSpecificExitCode = exitcode;
-***REMOVED***
-    else ***REMOVED***
+    }
+    else {
       service->status.dwWin32ExitCode = NO_ERROR;
       service->status.dwServiceSpecificExitCode = 0;
-***REMOVED***
+    }
     SetServiceStatus(service->status_handle, &service->status);
-  ***REMOVED***
+  }
 
   return exitcode;
-***REMOVED***
+}
 
 /* Callback function triggered when the server exits */
-void CALLBACK end_service(void *arg, unsigned char why) ***REMOVED***
+void CALLBACK end_service(void *arg, unsigned char why) {
   nssm_service_t *service = (nssm_service_t *) arg;
 
   if (service->stopping) return;
@@ -1770,12 +1770,12 @@ void CALLBACK end_service(void *arg, unsigned char why) ***REMOVED***
   /* Check exit code */
   unsigned long exitcode = 0;
   TCHAR code[16];
-  if (service->process_handle) ***REMOVED***
+  if (service->process_handle) {
     GetExitCodeProcess(service->process_handle, &exitcode);
     /* Check real exit time. */
     if (exitcode != STILL_ACTIVE) get_process_exit_time(service->process_handle, &service->exit_time);
     CloseHandle(service->process_handle);
-  ***REMOVED***
+  }
 
   service->process_handle = 0;
 
@@ -1783,10 +1783,10 @@ void CALLBACK end_service(void *arg, unsigned char why) ***REMOVED***
     Log that the service ended BEFORE logging about killing the process
     tree.  See below for the possible values of the why argument.
   */
-  if (! why) ***REMOVED***
+  if (! why) {
     _sntprintf_s(code, _countof(code), _TRUNCATE, _T("%lu"), exitcode);
     log_event(EVENTLOG_INFORMATION_TYPE, NSSM_EVENT_ENDED_SERVICE, service->exe, service->name, code, 0);
-  ***REMOVED***
+  }
 
   /* Clean up. */
   if (exitcode == STILL_ACTIVE) exitcode = 0;
@@ -1806,23 +1806,23 @@ void CALLBACK end_service(void *arg, unsigned char why) ***REMOVED***
   int action = NSSM_EXIT_RESTART;
   TCHAR action_string[ACTION_LEN];
   bool default_action;
-  if (! get_exit_action(service->name, &exitcode, action_string, &default_action)) ***REMOVED***
-    for (int i = 0; exit_action_strings[i]; i++) ***REMOVED***
-      if (! _tcsnicmp((const TCHAR *) action_string, exit_action_strings[i], ACTION_LEN)) ***REMOVED***
+  if (! get_exit_action(service->name, &exitcode, action_string, &default_action)) {
+    for (int i = 0; exit_action_strings[i]; i++) {
+      if (! _tcsnicmp((const TCHAR *) action_string, exit_action_strings[i], ACTION_LEN)) {
         action = i;
         break;
-  ***REMOVED***
-***REMOVED***
-  ***REMOVED***
+      }
+    }
+  }
 
-  switch (action) ***REMOVED***
+  switch (action) {
     /* Try to restart the service or return failure code to service manager */
     case NSSM_EXIT_RESTART:
       log_event(EVENTLOG_INFORMATION_TYPE, NSSM_EVENT_EXIT_RESTART, service->name, code, exit_action_strings[action], service->exe, 0);
-      while (monitor_service(service)) ***REMOVED***
+      while (monitor_service(service)) {
         log_event(EVENTLOG_WARNING_TYPE, NSSM_EVENT_RESTART_SERVICE_FAILED, service->exe, service->name, 0);
         Sleep(30000);
-  ***REMOVED***
+      }
     break;
 
     /* Do nothing, just like srvany would */
@@ -1844,10 +1844,10 @@ void CALLBACK end_service(void *arg, unsigned char why) ***REMOVED***
       free_imports();
       exit(exitcode);
     break;
-  ***REMOVED***
-***REMOVED***
+  }
+}
 
-void throttle_restart(nssm_service_t *service) ***REMOVED***
+void throttle_restart(nssm_service_t *service) {
   /* This can't be a restart if the service is already running. */
   if (! service->throttle++) return;
 
@@ -1863,30 +1863,30 @@ void throttle_restart(nssm_service_t *service) ***REMOVED***
   _sntprintf_s(milliseconds, _countof(milliseconds), _TRUNCATE, _T("%lu"), ms);
 
   if (service->throttle == 1 && service->restart_delay > throttle_ms) log_event(EVENTLOG_INFORMATION_TYPE, NSSM_EVENT_RESTART_DELAY, service->name, milliseconds, 0);
-  else ***REMOVED***
+  else {
     _sntprintf_s(threshold, _countof(threshold), _TRUNCATE, _T("%lu"), service->throttle_delay);
     log_event(EVENTLOG_WARNING_TYPE, NSSM_EVENT_THROTTLED, service->name, threshold, milliseconds, 0);
-  ***REMOVED***
+  }
 
   if (use_critical_section) EnterCriticalSection(&service->throttle_section);
-  else if (service->throttle_timer) ***REMOVED***
+  else if (service->throttle_timer) {
     ZeroMemory(&service->throttle_duetime, sizeof(service->throttle_duetime));
     service->throttle_duetime.QuadPart = 0 - (ms * 10000LL);
     SetWaitableTimer(service->throttle_timer, &service->throttle_duetime, 0, 0, 0, 0);
-  ***REMOVED***
+  }
 
   service->status.dwCurrentState = SERVICE_PAUSED;
   SetServiceStatus(service->status_handle, &service->status);
 
-  if (use_critical_section) ***REMOVED***
+  if (use_critical_section) {
     imports.SleepConditionVariableCS(&service->throttle_condition, &service->throttle_section, ms);
     LeaveCriticalSection(&service->throttle_section);
-  ***REMOVED***
-  else ***REMOVED***
+  }
+  else {
     if (service->throttle_timer) WaitForSingleObject(service->throttle_timer, INFINITE);
     else Sleep(ms);
-  ***REMOVED***
-***REMOVED***
+  }
+}
 
 /*
   When responding to a stop (or any other) request we need to set dwWaitHint to
@@ -1916,7 +1916,7 @@ void throttle_restart(nssm_service_t *service) ***REMOVED***
            0 if the wait completed.
           -1 on error.
 */
-int await_shutdown(nssm_service_t *service, TCHAR *function_name, unsigned long timeout) ***REMOVED***
+int await_shutdown(nssm_service_t *service, TCHAR *function_name, unsigned long timeout) {
   unsigned long interval;
   unsigned long waithint;
   unsigned long ret;
@@ -1929,15 +1929,15 @@ int await_shutdown(nssm_service_t *service, TCHAR *function_name, unsigned long 
   /* Add brackets to function name. */
   size_t funclen = _tcslen(function_name) + 3;
   TCHAR *func = (TCHAR *) HeapAlloc(GetProcessHeap(), 0, funclen * sizeof(TCHAR));
-  if (func) ***REMOVED***
+  if (func) {
     if (_sntprintf_s(func, funclen, _TRUNCATE, _T("%s()"), function_name) > -1) function = func;
-  ***REMOVED***
+  }
 
   _sntprintf_s(timeout_milliseconds, _countof(timeout_milliseconds), _TRUNCATE, _T("%lu"), timeout);
 
   waithint = service->status.dwWaitHint;
   waited = 0;
-  while (waited < timeout) ***REMOVED***
+  while (waited < timeout) {
     interval = timeout - waited;
     if (interval > NSSM_SERVICE_STATUS_DEADLINE) interval = NSSM_SERVICE_STATUS_DEADLINE;
 
@@ -1946,13 +1946,13 @@ int await_shutdown(nssm_service_t *service, TCHAR *function_name, unsigned long 
     service->status.dwCheckPoint++;
     SetServiceStatus(service->status_handle, &service->status);
 
-    if (waited) ***REMOVED***
+    if (waited) {
       _sntprintf_s(waited_milliseconds, _countof(waited_milliseconds), _TRUNCATE, _T("%lu"), waited);
       _sntprintf_s(interval_milliseconds, _countof(interval_milliseconds), _TRUNCATE, _T("%lu"), interval);
       log_event(EVENTLOG_INFORMATION_TYPE, NSSM_EVENT_AWAITING_SHUTDOWN, function, service->name, waited_milliseconds, interval_milliseconds, timeout_milliseconds, 0);
-***REMOVED***
+    }
 
-    switch (WaitForSingleObject(service->process_handle, interval)) ***REMOVED***
+    switch (WaitForSingleObject(service->process_handle, interval)) {
       case WAIT_OBJECT_0:
         ret = 0;
         goto awaited;
@@ -1964,13 +1964,13 @@ int await_shutdown(nssm_service_t *service, TCHAR *function_name, unsigned long 
       default:
         ret = -1;
         goto awaited;
-***REMOVED***
+    }
 
     waited += interval;
-  ***REMOVED***
+  }
 
 awaited:
   if (func) HeapFree(GetProcessHeap(), 0, func);
 
   return ret;
-***REMOVED***
+}

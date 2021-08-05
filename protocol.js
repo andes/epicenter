@@ -18,151 +18,151 @@ var port = null; // COM Port Communication
 
 init();
 
-function init()***REMOVED***
-    SerialPort.list(function(err, ports)***REMOVED***
+function init(){
+    SerialPort.list(function(err, ports){
         initPort(err,ports);
-***REMOVED***);
-***REMOVED***
+    });
+}
 
-function initPort(err, ports)***REMOVED***
+function initPort(err, ports){
     // var portNumber = ports[0].comName;   
     var portNumber = 'COM4';
     port = new SerialPort(portNumber);
     port.on('open', handlePortOpen);
     port.on('close', handlePortClose);
     port.on('data', handlePortData);
-    port.on('error', function(err) ***REMOVED***
+    port.on('error', function(err) {
           logger.error(err.message);
       throw new Error('Port Error: ' + err.message);
-***REMOVED***)
-***REMOVED***
+    })
+}
 
 
-function handlePortOpen() ***REMOVED***
+function handlePortOpen() {
     logger.info('Port open. Data rate: ' + port.options.baudRate);
-***REMOVED***
+}
 
-function handlePortClose() ***REMOVED***
+function handlePortClose() {
     logger.info('Port Closed.');
-***REMOVED***
+}
 
-function handlePortWrite(data)***REMOVED***
+function handlePortWrite(data){
     
     logger.info('RESPONSE');   
     logger.info(data);
     port.write(data);
     initTimer();
-***REMOVED***
+}
 
-function handlePortData(data)***REMOVED***
+function handlePortData(data){
     logger.info('REQUEST'); 
     logger.info(data); // Raw Buffer Data  
     var data = data.toString('ascii');
     
-     if (isTransferState)***REMOVED***
-         if (isClientMode)***REMOVED***
+     if (isTransferState){
+         if (isClientMode){
             
              readDataAsClient(data);
              
-     ***REMOVED***
-         else***REMOVED***
+         }
+         else{
              readDataAsServer(data);
-     ***REMOVED***    
- ***REMOVED***
-     else***REMOVED***
+         }    
+     }
+     else{
             readDataAsServer(data);
- ***REMOVED***
-***REMOVED***
+     }
+}
 
 ////////////////// SERVER MODE //////////////////////
 
 var inputChunks = [];
 
-function readDataAsServer(data)***REMOVED***
+function readDataAsServer(data){
     var response = '';
     
-    if (data === token.ENQ)***REMOVED***
+    if (data === token.ENQ){
         logger.info('Request: ENQ');
-        if (!isTransferState)***REMOVED***
+        if (!isTransferState){
             isTransferState = true;
             response = token.ACK;
-    ***REMOVED***
-        else***REMOVED***
+        }
+        else{
             logger.error('ENQ is not expected. Transfer state already.');
             response = token.NAK;
-    ***REMOVED***
-***REMOVED***
-    else if (data === token.ACK)***REMOVED***
+        }
+    }
+    else if (data === token.ACK){
         logger.error('ACK is not expected.');
         throw new Error('ACK is not expected.');
-***REMOVED***
-    else if (data === token.NAK)***REMOVED***
+    }
+    else if (data === token.NAK){
         logger.error('NAK is not expected.');
         throw new Error('NAK is not expected.');
-***REMOVED***
-    else if (data === token.EOT)***REMOVED***
-        if (isTransferState)***REMOVED***
+    }
+    else if (data === token.EOT){
+        if (isTransferState){
             isTransferState = false;
             logger.info('EOT accepted. OK');
-    ***REMOVED***
-        else***REMOVED***
+        }
+        else{
             logger.error('Not ready to accept EOT message.');
             response = token.NAK;
-    ***REMOVED***
-***REMOVED***
-    else if (data.startsWith(token.STX))***REMOVED***
-        if (!isTransferState)***REMOVED***
+        }
+    }
+    else if (data.startsWith(token.STX)){
+        if (!isTransferState){
             discard_input_buffers();
             logger.error('Not ready to accept messages');
             response = token.NAK;
-    ***REMOVED***
-        else***REMOVED***
-            try***REMOVED***
+        }
+        else{
+            try{
                 logger.info('Accept message.Handling message');
                 response = token.ACK;
                 handleMessage(data);
-        ***REMOVED***
-            catch(err)***REMOVED***
+            }
+            catch(err){
                 logger.error('Error occurred on message handling.' + err)
                 // response = token.NAK;
-        ***REMOVED***
-    ***REMOVED***
-***REMOVED***
-    else ***REMOVED***
+            }
+        }
+    }
+    else {
         logger.error('Invalid data.');
         throw new Error('Invalid data.');
-***REMOVED***
+    }
     
     handlePortWrite(response);
-***REMOVED***;
+};
 
-function handleMessage(message)***REMOVED***
-    if (codec.isChunkedMessage(message))***REMOVED***
+function handleMessage(message){
+    if (codec.isChunkedMessage(message)){
         logger.debug('handleMessage: Is chunked transfer.');
         inputChunks.push(message);
-***REMOVED***
-    else if (typeof inputChunks !== 'undefined' && inputChunks.length > 0)***REMOVED***
+    }
+    else if (typeof inputChunks !== 'undefined' && inputChunks.length > 0){
         logger.debug('handleMessage: Previous chunks. This must be the last one');
         inputChunks.push(message);
         dispatchMessage(inputChunks.join(''),token.ENCODING);
         inputChunks = [];
-***REMOVED***
-    else***REMOVED***
+    }
+    else{
         logger.debug('handleMessage: Complete message. Dispatching');
         dispatchMessage(message,token.ENCODING); 
-***REMOVED***
-***REMOVED***
+    }
+}
 
-function dispatchMessage(message)***REMOVED***
+function dispatchMessage(message){
     console.log(message);
     var records = codec.decodeMessage(message);
     logger.info(records);
     app.processMessage(records);
-***REMOVED***
+}
 
-function discard_input_buffers()***REMOVED***
+function discard_input_buffers(){
     inputChunks = [];
-***REMOVED***
+}
 
 
 
@@ -175,192 +175,192 @@ var lastSendOk = false;
 var lastSendData = "";
 var timer;
 
-function readDataAsClient(data)***REMOVED***
+function readDataAsClient(data){
     console.log('11')
-    if (data === token.ENQ)***REMOVED***
-        if (lastSendData === token.ENQ)***REMOVED***
+    if (data === token.ENQ){
+        if (lastSendData === token.ENQ){
             //TODO: Link Contention??
-    ***REMOVED***
+        }
         throw new Error('Client should not receive ENQ.');
-***REMOVED***
-    else if (data === token.ACK)***REMOVED***
+    }
+    else if (data === token.ACK){
         logger.debug('ACK Response');
         lastSendOk = true;
-        try***REMOVED*** 
+        try{ 
             console.log('22') 
             sendMessage();
-    ***REMOVED***
-        catch(error)***REMOVED***
+        }
+        catch(error){
             logger.debug(error);
             closeClientSession();
-    ***REMOVED***
-***REMOVED***
-    else if (data === token.NAK)***REMOVED***
+        }
+    }
+    else if (data === token.NAK){
         // Handles NAK response from server.
 
         // The client tries to repeat last
         // send for allowed amount of attempts. 
         logger.debug('NAK Response');
-        if (lastSendData === token.ENQ)***REMOVED***
+        if (lastSendData === token.ENQ){
             openClientSession();
-    ***REMOVED***
-        else***REMOVED***
-            try***REMOVED***
+        }
+        else{
+            try{
                 lastSendOk = false;
                 sendMessage();
-        ***REMOVED***
-            catch(error)***REMOVED***
+            }
+            catch(error){
                 closeClientSession();
-        ***REMOVED***
-    ***REMOVED***
-***REMOVED***
-    else if (data === token.EOT)***REMOVED***
+            }
+        }
+    }
+    else if (data === token.EOT){
         isTransferState = false;
         throw new Error('Client should not receive EOT.');
-***REMOVED***
-    else if (data.startsWith(token.STX))***REMOVED***
+    }
+    else if (data.startsWith(token.STX)){
         isTransferState = false;
         throw new Error('Client should not receive ASTM message.');
-***REMOVED***
-    else ***REMOVED***
+    }
+    else {
         throw new Error('Invalid data.');
-***REMOVED***
-***REMOVED***
+    }
+}
 
-function prepareMessagesToSend(protocol)***REMOVED***
+function prepareMessagesToSend(protocol){
     outputMessages = []; // Global variable
     outputMessages = app.composeOrderMessages(protocol);
-***REMOVED***
+}
 
-function prepareNextEncodedMessage()***REMOVED***
+function prepareNextEncodedMessage(){
     outputChunks = []; // Global variable
     outputChunks = codec.encode(outputMessages.shift());
-***REMOVED***
+}
 
-function sendMessage()***REMOVED***
-    if (lastSendData === token.ENQ)***REMOVED***
-        if (outputMessages.length > 0)***REMOVED***
+function sendMessage(){
+    if (lastSendData === token.ENQ){
+        if (outputMessages.length > 0){
             // Still exists messages to send
             prepareNextEncodedMessage();
             sendData();
-    ***REMOVED***
-        else***REMOVED***
-            db.getNextProtocolToSend().then( function( results ) ***REMOVED***
-            for (var i = 0; i < results.length; i++) ***REMOVED*** // Always only 1 iteration
+        }
+        else{
+            db.getNextProtocolToSend().then( function( results ) {
+            for (var i = 0; i < results.length; i++) { // Always only 1 iteration
                 var protocol = results[i]; 
                 prepareMessagesToSend(protocol)
                 prepareNextEncodedMessage();
                 sendData();
-        ***REMOVED***
-        ***REMOVED***, function( err ) ***REMOVED***
+            }
+            }, function( err ) {
                 logger.error( "Something bad happened:", err );
-        ***REMOVED*** );
-    ***REMOVED***
-***REMOVED***
-    else***REMOVED***
+            } );
+        }
+    }
+    else{
         sendData();
-***REMOVED***
-***REMOVED***
+    }
+}
 
-function sendData()***REMOVED***
-    if (!lastSendOk)***REMOVED***
-        if (retryCounter > 6)***REMOVED***
+function sendData(){
+    if (!lastSendOk){
+        if (retryCounter > 6){
             logger.error("Luego de probar 6 veces.... y falla");
             closeClientSession();
-            if (lastSendData !== token.ENQ)***REMOVED***
+            if (lastSendData !== token.ENQ){
                // pone en fail le protocolo si tuvo algún problema
                 db.setFailLastProtocolSent();
-        ***REMOVED***
+            }
             return;
-    ***REMOVED***
-        else***REMOVED***
+        }
+        else{
             logger.error("Dio fallo....contando: ", retryCounter);
             retryCounter = retryCounter + 1;
-    ***REMOVED***
-***REMOVED***
-    else***REMOVED***
+        }
+    }
+    else{
         retryCounter = 0;
-        if (outputChunks.length > 0)***REMOVED***
+        if (outputChunks.length > 0){
             lastSendData = outputChunks.shift();
-    ***REMOVED***
-        else***REMOVED***
+        }
+        else{
             closeClientSession();
-            if (outputMessages.length > 0)***REMOVED***
+            if (outputMessages.length > 0){
                 openClientSession();
-        ***REMOVED***
-            else***REMOVED***
+            }
+            else{
                 // Borra el protocolo si lo mando ok
                 logger.error("Va a borrar el protocolo de la tabla porque pasó ok");
                 db.removeLastProtocolSent();
-        ***REMOVED***
+            }
             
             return;
-    ***REMOVED***
-***REMOVED***
+        }
+    }
     handlePortWrite(lastSendData);
-***REMOVED***
+}
 
 
-function openClientSession()***REMOVED***
+function openClientSession(){
     logger.info('Open Client Session');
     retryCounter = retryCounter + 1;
-    if (retryCounter > 6)***REMOVED***
+    if (retryCounter > 6){
         logger.error('Exceed number of retries');
         closeClientSession();
-***REMOVED***
-    else***REMOVED***
+    }
+    else{
         handlePortWrite(token.ENQ);
         lastSendData = token.ENQ;
         isTransferState = true;
         isClientMode = true;
-***REMOVED***
-***REMOVED***
+    }
+}
 
-function closeClientSession()***REMOVED***
+function closeClientSession(){
     logger.debug('Close Client Session');
     handlePortWrite(token.EOT);
     isTransferState = false;
     isClientMode = false;
     retryCounter = 0;
-***REMOVED***
+}
 
-function checkDataToSend()***REMOVED***
-    db.hasProtocolsToSend().then( function( results ) ***REMOVED***
-        if (results[0].total > 0)***REMOVED***
+function checkDataToSend(){
+    db.hasProtocolsToSend().then( function( results ) {
+        if (results[0].total > 0){
             logger.info("Exist data to send");
-            if (!isClientMode)***REMOVED***
+            if (!isClientMode){
                 openClientSession();
-        ***REMOVED***
-    ***REMOVED***
-        else***REMOVED***
-            if (isClientMode)***REMOVED***
+            }
+        }
+        else{
+            if (isClientMode){
             isClientMode = false;
-        ***REMOVED***
-            else***REMOVED***
+            }
+            else{
                 return;
                 logger.info('Waiting for data to send');
-        ***REMOVED***
-    ***REMOVED***
-***REMOVED***, function( err ) ***REMOVED***
+            }
+        }
+    }, function( err ) {
         logger.error( "Something bad happened:", err );
-***REMOVED*** );
-***REMOVED***
+    } );
+}
 
-function initTimer()***REMOVED***
+function initTimer(){
     clearTimeout(timer);
     timer = setTimeout(timeoutCommunication,5000);
-***REMOVED***
+}
 
-function timeoutCommunication()***REMOVED***
+function timeoutCommunication(){
  console.log(isTransferState);
-    if (isTransferState)***REMOVED***
+    if (isTransferState){
         throw new Error('Timeout Communication');
-***REMOVED***
-***REMOVED***
+    }
+}
 
-function runIntervalCheck() ***REMOVED***
+function runIntervalCheck() {
   setInterval(checkDataToSend, 10000);
-***REMOVED***;
+};
 
 
 runIntervalCheck();
